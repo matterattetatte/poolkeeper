@@ -10,6 +10,8 @@
           <p>Current Price: <span>{{ currentPrice }}</span></p>
           <p>Lower Bound: <span>{{ lowerBoundPrice }}</span></p>
           <p>Upper Bound: <span>{{ upperBoundPrice }}</span></p>
+          <p>Daily APR: <span>{{ dailyAPRData?.dailyAPR?.toFixed(2) || 'N/A' }}%</span></p>
+          <p>Average APR (30 days): <span>{{ averageAPRData?.averageAPR?.toFixed(2) || 'N/A' }}%</span></p>
         </div>
       </div>
     </div>
@@ -17,9 +19,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import * as d3 from 'd3';
+import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DailyData, DayAPRData } from '@/utils/lpUtils';
 
 // Route
 const route = useRoute();
@@ -28,9 +31,99 @@ const id = ref(route.params.id as string);
 // State
 const loading = ref(true);
 const error = ref<string | null>(null);
-const currentPrice = ref<string | null>(null);
+const tickData = ref<any[]>([]);
+const priceData = ref<any>(null);
+const positionLiquidity = ref(1000); // Configurable position liquidity
+const volumeFee = ref(0.003); // Configurable fee rate (0.3%)
+const daysCount = ref(30); // Number of days for average APR
+
+// Computed properties
+const groupedData = computed(() => processTicks(tickData.value));
+const labels = computed(() => groupedData.value.map(g => g.averagePrice.toFixed(1)));
+const data = computed(() => groupedData.value.map(g => Math.abs(g.totalLiquidity)));
+
+const priceToTick = computed(() => createPriceToTickMap(tickData.value));
+
+const currentPrice = computed(() => {
+  if (!priceData.value?.token0?.price || !labels.value.length) return null;
+  const currentPriceTick = labels.value.reduce(
+    (closestIdx, curr, idx) => (
+      Math.abs(Number(curr) - priceData.value.token0.price) < Math.abs(Number(labels.value[closestIdx]) - priceData.value.token0.price) ? idx : closestIdx
+    ),
+    0
+  );
+  return labels.value[currentPriceTick];
+});
+
 const lowerBoundPrice = ref<string | null>(null);
 const upperBoundPrice = ref<string | null>(null);
+
+const initialBounds = computed(() => {
+  if (!currentPrice.value || !labels.value.length) return { lower: null, upper: null };
+  const lowerBound = Number(currentPrice.value) * 0.9;
+  const upperBound = Number(currentPrice.value) * 1.1;
+  const lowerBoundTick = labels.value.reduce(
+    (closestIdx, curr, idx) => (
+      Math.abs(Number(curr) - lowerBound) < Math.abs(Number(labels.value[closestIdx]) - lowerBound) ? idx : closestIdx
+    ),
+    0
+  );
+  const upperBoundTick = labels.value.reduce(
+    (closestIdx, curr, idx) => (
+      Math.abs(Number(curr) - upperBound) < Math.abs(Number(labels.value[closestIdx]) - upperBound) ? idx : closestIdx
+    ),
+    0
+  );
+  return { lower: labels.value[lowerBoundTick], upper: labels.value[upperBoundTick] };
+});
+
+// Initialize bound prices reactively
+watch(initialBounds, (newBounds) => {
+  if (newBounds.lower && newBounds.upper) {
+    lowerBoundPrice.value = newBounds.lower;
+    upperBoundPrice.value = newBounds.upper;
+  }
+}, { immediate: true });
+
+const dailyData = computed(() => generateDailyData(tickData.value, priceData.value));
+
+const dailyAPRData = computed((): DayAPRData | null => {
+  if (!dailyData.value.length || !lowerBoundPrice.value || !upperBoundPrice.value || !priceToTick.value[lowerBoundPrice.value] || !priceToTick.value[upperBoundPrice.value]) {
+    return null;
+  }
+  try {
+    return calculateDayAPR(
+      0,
+      dailyData.value,
+      priceToTick.value[lowerBoundPrice.value],
+      priceToTick.value[upperBoundPrice.value],
+      positionLiquidity.value,
+      volumeFee.value
+    );
+  } catch (err) {
+    console.error('Error calculating daily APR:', err);
+    return null;
+  }
+});
+
+const averageAPRData = computed((): { averageAPR: number; dailyAPRArray: DayAPRData[] } | null => {
+  if (!dailyData.value.length || !lowerBoundPrice.value || !upperBoundPrice.value || !priceToTick.value[lowerBoundPrice.value] || !priceToTick.value[upperBoundPrice.value]) {
+    return null;
+  }
+  try {
+    return calculateAverageAPR(
+      daysCount.value,
+      dailyData.value,
+      priceToTick.value[lowerBoundPrice.value],
+      priceToTick.value[upperBoundPrice.value],
+      positionLiquidity.value,
+      volumeFee.value
+    );
+  } catch (err) {
+    console.error('Error calculating average APR:', err);
+    return null;
+  }
+});
 
 interface Call {
   method: string;
@@ -90,7 +183,7 @@ class MetrixApiBatchUrlBuilder {
 async function fetchLiquidityData(poolId: string) {
   try {
     const builder = new MetrixApiBatchUrlBuilder();
-    const [{ ticks }, _temp, priceData] = await builder.fetchAndFlatten([
+    const [{ ticks }, _temp, priceDataResponse] = await builder.fetchAndFlatten([
       {
         method: 'exchanges.getPoolTicks',
         body: {
@@ -124,84 +217,23 @@ async function fetchLiquidityData(poolId: string) {
       },
     ], true);
 
-    return { ticks, priceData };
+    return { ticks, priceData: priceDataResponse };
   } catch (err) {
     throw new Error('Error fetching data: ' + (err as Error).message);
   }
 }
 
 // Render chart with D3.js
-function renderChart(tickData: any[], priceData: any) {
-  if (!tickData || !priceData || !priceData.token0?.price) {
-    console.error('Invalid data provided to renderChart');
+function renderChart() {
+  if (!groupedData.value.length || !currentPrice.value || !lowerBoundPrice.value || !upperBoundPrice.value) {
+    console.error('Invalid data for rendering chart');
     return;
   }
-
-  const binSize = 1;
-  const sortedTicks = tickData.slice().sort((a, b) => Number(a.tickIdx) - Number(b.tickIdx));
-  let cumulativeLiquidity = 0;
-  const ticksWithCumLiquidity = sortedTicks.map(tick => {
-    cumulativeLiquidity += Number(tick.liquidityNet);
-    return {
-      tickIdx: Number(tick.tickIdx),
-      price0: Number(tick.price0),
-      cumulativeLiquidity,
-    };
-  });
-
-  const bins: Record<string, { tickCount: number; liquiditySum: number; priceSum: number }> = {};
-  ticksWithCumLiquidity.forEach(({ tickIdx, price0, cumulativeLiquidity }) => {
-    const binIndex = Math.floor(tickIdx / binSize);
-    if (!bins[binIndex]) {
-      bins[binIndex] = { tickCount: 0, liquiditySum: 0, priceSum: 0 };
-    }
-    bins[binIndex].tickCount++;
-    bins[binIndex].liquiditySum += cumulativeLiquidity;
-    bins[binIndex].priceSum += price0;
-  });
-
-  const groupedData = Object.entries(bins).map(([binIndex, bin]) => ({
-    binIndex: Number(binIndex),
-    averagePrice: bin.priceSum / bin.tickCount,
-    totalLiquidity: bin.liquiditySum,
-  }));
-
-  groupedData.sort((a, b) => a.averagePrice - b.averagePrice);
-  const labels = groupedData.map(g => g.averagePrice.toFixed(1));
-  const data = groupedData.map(g => Math.abs(g.totalLiquidity));
-
-  const currentPriceTick = labels.reduce(
-    (closestIdx, curr, idx) => (
-      Math.abs(Number(curr) - priceData.token0.price) < Math.abs(Number(labels[closestIdx]) - priceData.token0.price) ? idx : closestIdx
-    ),
-    0
-  );
-
-  const lowerBound = Number(labels[currentPriceTick]) * 0.9;
-  const lowerBoundTick = labels.reduce(
-    (closestIdx, curr, idx) => (
-      Math.abs(Number(curr) - lowerBound) < Math.abs(Number(labels[closestIdx]) - lowerBound) ? idx : closestIdx
-    ),
-    0
-  );
-
-  const upperBound = Number(labels[currentPriceTick]) * 1.1;
-  const upperBoundTick = labels.reduce(
-    (closestIdx, curr, idx) => (
-      Math.abs(Number(curr) - upperBound) < Math.abs(Number(labels[closestIdx]) - upperBound) ? idx : closestIdx
-    ),
-    0
-  );
-
-  // Update reactive state
-  currentPrice.value = labels[currentPriceTick];
-  lowerBoundPrice.value = labels[lowerBoundTick];
-  upperBoundPrice.value = labels[upperBoundTick];
 
   // Chart dimensions
   const margin = { top: 40, right: 30, bottom: 50, left: 60 };
   const width = 800 - margin.left - margin.right;
-  const height = 384 - margin.top - margin.bottom; // h-96 = 384px
+  const height = 384 - margin.top - margin.bottom;
 
   // Clear existing SVG content
   d3.select('#liquidityChart').selectAll('*').remove();
@@ -213,20 +245,24 @@ function renderChart(tickData: any[], priceData: any) {
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
+  // Subsample labels (every 5th label)
+  const labelStep = 5;
+  const reducedLabels = labels.value.filter((_, i) => i % labelStep === 0);
+
   // Scales
   const x = d3.scaleBand()
-    .domain(labels)
+    .domain(labels.value)
     .range([0, width])
     .padding(0.1);
 
   const y = d3.scaleLinear()
-    .domain([0, d3.max(data)! * 1.1])
+    .domain([0, d3.max(data.value)! * 1.1])
     .range([height, 0]);
 
-  // X-axis
+  // X-axis with reduced labels
   svg.append('g')
     .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(x))
+    .call(d3.axisBottom(x).tickValues(reducedLabels))
     .selectAll('text')
     .attr('transform', 'rotate(-45)')
     .style('text-anchor', 'end')
@@ -262,7 +298,7 @@ function renderChart(tickData: any[], priceData: any) {
 
   // Bars
   svg.selectAll('.bar')
-    .data(groupedData)
+    .data(groupedData.value)
     .enter()
     .append('rect')
     .attr('class', 'bar')
@@ -270,7 +306,7 @@ function renderChart(tickData: any[], priceData: any) {
     .attr('y', d => y(Math.abs(d.totalLiquidity)))
     .attr('width', x.bandwidth())
     .attr('height', d => height - y(Math.abs(d.totalLiquidity)))
-    .attr('fill', 'lightblue');
+    .attr('fill', 'blue');
 
   // Helper function to convert price to x-coordinate
   const priceToX = (price: string) => {
@@ -316,23 +352,19 @@ function renderChart(tickData: any[], priceData: any) {
   const drag = d3.drag<SVGLineElement, unknown>()
     .on('drag', function (event) {
       const xPos = event.x;
-      // Find closest price
-      const closestPrice = labels.reduce((closest, curr) => (
+      const closestPrice = labels.value.reduce((closest, curr) => (
         Math.abs(priceToX(curr) - xPos) < Math.abs(priceToX(closest) - xPos) ? curr : closest
-      ), labels[0]);
+      ), labels.value[0]);
 
-      // Update line position and reactive state
       if (d3.select(this).classed('lower-bound')) {
         lowerBoundPrice.value = closestPrice;
-        d3.select(this)
-          .attr('x1', priceToX(closestPrice))
-          .attr('x2', priceToX(closestPrice));
       } else if (d3.select(this).classed('upper-bound')) {
         upperBoundPrice.value = closestPrice;
-        d3.select(this)
-          .attr('x1', priceToX(closestPrice))
-          .attr('x2', priceToX(closestPrice));
       }
+
+      d3.select(this)
+        .attr('x1', priceToX(closestPrice))
+        .attr('x2', priceToX(closestPrice));
     });
 
   // Apply drag to bound lines
@@ -346,7 +378,8 @@ async function loadData() {
   error.value = null;
   try {
     const response = await fetchLiquidityData(id.value);
-    renderChart(response.ticks, response.priceData);
+    tickData.value = response.ticks;
+    priceData.value = response.priceData;
   } catch (err) {
     console.error(err);
     error.value = (err as Error).message;
@@ -359,6 +392,11 @@ async function loadData() {
 watch(() => route.params.id, (newId) => {
   id.value = newId as string;
   loadData();
+});
+
+// Watch for changes in computed properties to re-render chart
+watch([groupedData, currentPrice, lowerBoundPrice, upperBoundPrice], () => {
+  renderChart();
 });
 
 // Initial load
