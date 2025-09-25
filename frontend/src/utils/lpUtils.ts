@@ -51,6 +51,7 @@ export function calculateDayAPR(
   const dailyReturn = positionLiquidity > 0 ? feesEarned / positionLiquidity : 0;
   const dailyAPR = dailyReturn * 365;
 
+  debugger
   return { date, volumeInRange, feesEarned, price, dailyAPR };
 }
 

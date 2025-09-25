@@ -8,8 +8,8 @@
         <svg id="liquidityChart" class="w-full h-96"></svg>
         <div class="mt-4">
           <p>Current Price: <span>{{ currentPrice }}</span></p>
-          <p>Lower Bound: <span>{{ lowerBoundPrice }}</span></p>
-          <p>Upper Bound: <span>{{ upperBoundPrice }}</span></p>
+          <p>Lower Bound: <span>{{ streamedLowerline || lowerBoundPrice }}</span></p>
+          <p>Upper Bound: <span>{{ streamedUpperline || upperBoundPrice }}</span></p>
           <p>Daily APR: <span>{{ dailyAPRData?.dailyAPR?.toFixed(2) || 'N/A' }}%</span></p>
           <p>Average APR (30 days): <span>{{ averageAPRData?.averageAPR?.toFixed(2) || 'N/A' }}%</span></p>
         </div>
@@ -57,6 +57,8 @@ const currentPrice = computed(() => {
 
 const lowerBoundPrice = ref<string | null>(null);
 const upperBoundPrice = ref<string | null>(null);
+const streamedLowerline = ref<number | null>(null);
+const streamedUpperline = ref<number | null>(null);
 
 const initialBounds = computed(() => {
   if (!currentPrice.value || !labels.value.length) return { lower: null, upper: null };
@@ -85,10 +87,17 @@ watch(initialBounds, (newBounds) => {
   }
 }, { immediate: true });
 
+
+// TODO:
+// 1. GET volume properly from api response
+// 2. Improve APR calculations
+// 3. also get the fees from the api response
+
+// later: array grouped with a slider that make ssure to display the right data for the day
 const dailyData = computed(() => generateDailyData(tickData.value, priceData.value));
 
 const dailyAPRData = computed((): DayAPRData | null => {
-  if (!dailyData.value.length || !lowerBoundPrice.value || !upperBoundPrice.value || !priceToTick.value[lowerBoundPrice.value] || !priceToTick.value[upperBoundPrice.value]) {
+  if (!dailyData.value.length || !streamedLowerline.value || !streamedUpperline.value || !priceToTick.value[streamedLowerline.value] || !priceToTick.value[streamedUpperline.value]) {
     return null;
   }
   try {
@@ -159,8 +168,8 @@ class MetrixApiBatchUrlBuilder {
   async fetchAndFlatten(calls: Call[], useCorsProxy: boolean = false): Promise<Record<string, any>[]> {
     try {
       const url = this.buildFromCalls(calls);
-      const finalUrl = useCorsProxy ? `https://corsproxy.io/?${encodeURIComponent(url)}` : url;
-      const response = await fetch(finalUrl);
+      // const finalUrl = useCorsProxy ? `https://corsproxy.io/?${encodeURIComponent(url)}` : url;
+      const response = await fetch('/mockdata.json');
 
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
@@ -259,11 +268,10 @@ function renderChart() {
   // X-axis with reduced labels
   svg.append('g')
     .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(x).tickValues(labels))
+    .call(d3.axisBottom(x).tickValues(labels.value.filter((_, i) => i % 100 === 0))) // Show every 5th label
     .selectAll('text')
     .attr('transform', 'rotate(-45)')
-    .style('text-anchor', 'end')
-    .style('display', (d, i) => i % 50 === 0 ? null : 'none');
+    .style('text-anchor', 'end');
 
   // Y-axis
   svg.append('g')
@@ -345,28 +353,73 @@ function renderChart() {
     .attr('stroke-dasharray', '5,5')
     .style('cursor', 'ew-resize');
 
-  // Drag behavior
-  const drag = d3.drag<SVGLineElement, unknown>()
-    .on('drag', function (event) {
-      const xPos = event.x;
-      const closestPrice = labels.value.reduce((closest, curr) => (
-        Math.abs(priceToX(curr) - xPos) < Math.abs(priceToX(closest) - xPos) ? curr : closest
-      ), labels.value[0]);
+  // Assuming priceToX is a function that maps a price to an x-coordinate
+// and labels.value is an array of price values
+// lowerLine, upperLine are D3 selections for <line> elements
+// lowerCircle, upperCircle are D3 selections for <circle> elements
+// lowerBoundPrice, upperBoundPrice are reactive variables (e.g., Vue ref or D3 local)
+const drag = d3
+  .drag<SVGLineElement, unknown>()
+  .on("drag", function (event) {
+    // Get mouse coordinates relative to the parent <g> element
+    const [newX] = d3.pointer(event, this.parentNode); // Adjust for <g> transforms
+    // Constrain x position to chart bounds
+    const constrainedX = Math.max(0, Math.min(width, newX));
 
-      if (d3.select(this).classed('lower-bound')) {
-        lowerBoundPrice.value = closestPrice;
-      } else if (d3.select(this).classed('upper-bound')) {
-        upperBoundPrice.value = closestPrice;
-      }
+    // Find the closest price from labels.value
+    const closestPrice = labels.value.reduce(
+      (closest, curr) =>
+        Math.abs(priceToX(curr) - constrainedX) < Math.abs(priceToX(closest) - constrainedX)
+          ? curr
+          : closest,
+      labels.value[0]
+    );
 
+    // Check if this is the lower or upper bound line
+    const isLowerBound = d3.select(this).classed("lower-bound");
+    const isUpperBound = d3.select(this).classed("upper-bound");
+
+    if (isLowerBound) streamedLowerline.value = Number(closestPrice);
+    if (isUpperBound) streamedUpperline.value = Number(closestPrice);
+
+    // Update line position immediately (avoid reactive conflict)
+    if (isLowerBound && Number(closestPrice) <= Number(upperBoundPrice.value)) {
       d3.select(this)
-        .attr('x1', priceToX(closestPrice))
-        .attr('x2', priceToX(closestPrice));
-    });
+        .attr("x1", priceToX(closestPrice))
+        .attr("x2", priceToX(closestPrice));
+      // Defer reactive update to dragend
+      d3.select(this).datum({ price: closestPrice });
+    } else if (isUpperBound && Number(closestPrice) >= Number(lowerBoundPrice.value)) {
+      d3.select(this)
+        .attr("x1", priceToX(closestPrice))
+        .attr("x2", priceToX(closestPrice));
+      // Defer reactive update to dragend
+      d3.select(this).datum({ price: closestPrice });
+    } else {
+      // Snap back to last valid position
+      const currentPrice = isLowerBound ? lowerBoundPrice.value : upperBoundPrice.value;
+      d3.select(this)
+        .attr("x1", priceToX(currentPrice))
+        .attr("x2", priceToX(currentPrice));
+    }
 
-  // Apply drag to bound lines
-  lowerLine.call(drag);
-  upperLine.call(drag);
+  })
+  .on("end", function () {
+    // Update reactive state only when drag ends
+    const isLowerBound = d3.select(this).classed("lower-bound");
+    const isUpperBound = d3.select(this).classed("upper-bound");
+    const newPrice = d3.select(this).datum()?.price;
+
+    if (isLowerBound && newPrice != null && Number(newPrice) <= Number(upperBoundPrice.value)) {
+      lowerBoundPrice.value = newPrice;
+    } else if (isUpperBound && newPrice != null && Number(newPrice) >= Number(lowerBoundPrice.value)) {
+      upperBoundPrice.value = newPrice;
+    }
+  });
+
+// Apply drag behavior to the lines
+lowerLine.call(drag);
+upperLine.call(drag);
 }
 
 // Fetch and load data
