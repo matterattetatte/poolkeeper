@@ -245,9 +245,6 @@ function renderChart() {
     .append('g')
     .attr('transform', `translate(${margin.left},${margin.top})`);
 
-  // Subsample labels (every 5th label)
-  const labelStep = 5;
-  const reducedLabels = labels.value.filter((_, i) => i % labelStep === 0);
 
   // Scales
   const x = d3.scaleBand()
@@ -262,11 +259,11 @@ function renderChart() {
   // X-axis with reduced labels
   svg.append('g')
     .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(x).tickValues(reducedLabels))
+    .call(d3.axisBottom(x).tickValues(labels))
     .selectAll('text')
     .attr('transform', 'rotate(-45)')
     .style('text-anchor', 'end')
-    .style('display', (d, i) => i % 100 === 0 ? null : 'none');
+    .style('display', (d, i) => i % 50 === 0 ? null : 'none');
 
   // Y-axis
   svg.append('g')
