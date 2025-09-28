@@ -3,7 +3,8 @@
 // Interface for dailyData
 export interface DailyData {
   date: string;
-  volume: number;
+  feesUSD: number;
+  volumeUSD: number;
   price: number;
   ticks: { tick: number; liquidity: number }[];
 }
@@ -11,7 +12,6 @@ export interface DailyData {
 // Interface for calculateDayAPR return type
 export interface DayAPRData {
   date: string;
-  volumeInRange: number;
   feesEarned: number;
   price: number;
   dailyAPR: number;
@@ -33,26 +33,22 @@ export function calculateDayAPR(
   lowerTick: number,
   upperTick: number,
   positionLiquidity: number,
-  volumeFee: number
 ): DayAPRData {
   if (dayIndex < 0 || dayIndex >= dailyData.length) {
     throw new Error('Invalid day index');
   }
 
   const day = dailyData[dayIndex];
-  const { date, volume, price, ticks } = day;
+  const { date, feesUSD, price, ticks } = day;
 
   const ticksInRange = ticks.filter(({ tick }) => tick >= lowerTick && tick <= upperTick);
-  const totalLiquidity = ticks.reduce((sum, t) => sum + t.liquidity, 0);
   const liquidityInRange = ticksInRange.reduce((sum, t) => sum + t.liquidity, 0);
-  const positionShare = liquidityInRange > 0 ? positionLiquidity / liquidityInRange : 0;
-  const volumeInRange = (liquidityInRange / totalLiquidity) * volume;
-  const feesEarned = volumeInRange * volumeFee * positionShare;
+  const positionShare = liquidityInRange > 0 ? 10e9 * positionLiquidity / liquidityInRange : 0;
+  const feesEarned = feesUSD * positionShare;
   const dailyReturn = positionLiquidity > 0 ? feesEarned / positionLiquidity : 0;
   const dailyAPR = dailyReturn * 365;
 
-  debugger
-  return { date, volumeInRange, feesEarned, price, dailyAPR };
+  return { date, feesEarned, price, dailyAPR };
 }
 
 /**
@@ -71,14 +67,13 @@ export function calculateAverageAPR(
   lowerTick: number,
   upperTick: number,
   positionLiquidity: number,
-  volumeFee: number
 ): { averageAPR: number; dailyAPRArray: DayAPRData[] } {
   const dailyAPRArray: DayAPRData[] = [];
   let aprSum = 0;
 
   for (let i = 0; i < daysCount; i++) {
     if (i >= dailyData.length) break;
-    const dayAPRData = calculateDayAPR(i, dailyData, lowerTick, upperTick, positionLiquidity, volumeFee);
+    const dayAPRData = calculateDayAPR(i, dailyData, lowerTick, upperTick, positionLiquidity);
     dailyAPRArray.push(dayAPRData);
     aprSum += dayAPRData.dailyAPR;
   }
@@ -146,7 +141,7 @@ export function createPriceToTickMap(tickData: any[]): Record<string, number> {
  * @param priceData - Object with { token0: { price } }.
  * @returns Array of DailyData for APR calculations.
  */
-export function generateDailyData(tickData: any[], priceData: any): DailyData[] {
+export function generateDailyData(tickData: any[], priceData: any, historyData: any[]): DailyData[] {
   if (!tickData.length || !priceData?.token0?.price) return [];
   const sortedTicks = tickData.slice().sort((a, b) => Number(a.tickIdx) - Number(b.tickIdx));
   let cumulativeLiquidity = 0;
@@ -161,7 +156,8 @@ export function generateDailyData(tickData: any[], priceData: any): DailyData[] 
   return [
     {
       date: new Date().toISOString().split('T')[0],
-      volume: 1000000, // Placeholder; replace with actual volume
+      volumeUSD: Number(historyData?.slice(-2)[0]?.volumeUSD || 0), // last full days data
+      feesUSD: Number(historyData?.slice(-2)[0]?.feesUSD || 0), // assuming 0.3%
       price: priceData.token0.price,
       ticks: ticksWithCumLiquidity.map(({ tickIdx, cumulativeLiquidity }) => ({
         tick: tickIdx,

@@ -8,10 +8,10 @@
         <svg id="liquidityChart" class="w-full h-96"></svg>
         <div class="mt-4">
           <p>Current Price: <span>{{ currentPrice }}</span></p>
-          <p>Lower Bound: <span>{{ streamedLowerline || lowerBoundPrice }}</span></p>
-          <p>Upper Bound: <span>{{ streamedUpperline || upperBoundPrice }}</span></p>
-          <p>Daily APR: <span>{{ dailyAPRData?.dailyAPR?.toFixed(2) || 'N/A' }}%</span></p>
-          <p>Average APR (30 days): <span>{{ averageAPRData?.averageAPR?.toFixed(2) || 'N/A' }}%</span></p>
+          <p>Lower Bound: <span>{{ streamedLowerline }} ({{ - ((1 - streamedLowerline / currentPrice) * 100).toFixed(2) }} %)</span></p>
+          <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - currentPrice) / currentPrice) * 100).toFixed(2) }} %)</span></p>
+          <p>APR based on current LP distribution, current price, and volume last 24h: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
+          <p>Average APR (30 days): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
         </div>
       </div>
     </div>
@@ -34,8 +34,8 @@ const error = ref<string | null>(null);
 const tickData = ref<any[]>([]);
 const priceData = ref<any>(null);
 const positionLiquidity = ref(1000); // Configurable position liquidity
-const volumeFee = ref(0.003); // Configurable fee rate (0.3%)
 const daysCount = ref(30); // Number of days for average APR
+const historyData = ref<any[]>([]);
 
 // Computed properties
 const groupedData = computed(() => processTicks(tickData.value));
@@ -84,52 +84,65 @@ watch(initialBounds, (newBounds) => {
   if (newBounds.lower && newBounds.upper) {
     lowerBoundPrice.value = newBounds.lower;
     upperBoundPrice.value = newBounds.upper;
+
+    streamedLowerline.value = Number(newBounds.lower);
+    streamedUpperline.value = Number(newBounds.upper);
   }
 }, { immediate: true });
 
-
-// TODO:
-// 1. GET volume properly from api response
-// 2. Improve APR calculations
-// 3. also get the fees from the api response
-
 // later: array grouped with a slider that make ssure to display the right data for the day
-const dailyData = computed(() => generateDailyData(tickData.value, priceData.value));
+const dailyData = computed(() => generateDailyData(tickData.value, priceData.value, historyData.value));
 
-const dailyAPRData = computed((): DayAPRData | null => {
-  if (!dailyData.value.length || !streamedLowerline.value || !streamedUpperline.value || !priceToTick.value[streamedLowerline.value] || !priceToTick.value[streamedUpperline.value]) {
+const aprData = computed((): { dailyAPR: DayAPRData | null; averageAPR: { averageAPR: number; dailyAPRArray: DayAPRData[] } | null } | null => {
+  if (!dailyData.value.length || !streamedLowerline.value || !streamedUpperline.value) {
     return null;
   }
   try {
-    return calculateDayAPR(
+    const closestLowerTick = Object.keys(priceToTick.value).reduce(
+      (closest, curr) =>
+        Math.abs(Number(curr) - streamedLowerline.value) < Math.abs(Number(closest) - streamedLowerline.value)
+          ? curr
+          : closest,
+      Object.keys(priceToTick.value)[0]
+    );
+    const lowerTickValue = priceToTick.value[closestLowerTick];
+
+    const closestUpperTick = Object.keys(priceToTick.value).reduce(
+      (closest, curr) =>
+        Math.abs(Number(curr) - streamedUpperline.value) < Math.abs(Number(closest) - streamedUpperline.value)
+          ? curr
+          : closest,
+      Object.keys(priceToTick.value)[0]
+    );
+    const upperTickValue = priceToTick.value[closestUpperTick];
+
+    // check if we are out of bounds, lower tick higher than current price or upper tick lower than current price
+    if ((lowerTickValue > priceToTick.value[currentPrice.value!]!) || (upperTickValue < priceToTick.value[currentPrice.value!]!)) {
+      return { dailyAPR: { date: '', feesEarned: 0, price: 0, dailyAPR: 0 }, averageAPR: { averageAPR: 0, dailyAPRArray: [] } };
+    }
+
+    const dailyAPR = calculateDayAPR(
       0,
       dailyData.value,
-      priceToTick.value[lowerBoundPrice.value],
-      priceToTick.value[upperBoundPrice.value],
-      positionLiquidity.value,
-      volumeFee.value
+      lowerTickValue,
+      upperTickValue,
+      positionLiquidity.value
     );
-  } catch (err) {
-    console.error('Error calculating daily APR:', err);
-    return null;
-  }
-});
 
-const averageAPRData = computed((): { averageAPR: number; dailyAPRArray: DayAPRData[] } | null => {
-  if (!dailyData.value.length || !lowerBoundPrice.value || !upperBoundPrice.value || !priceToTick.value[lowerBoundPrice.value] || !priceToTick.value[upperBoundPrice.value]) {
-    return null;
-  }
-  try {
-    return calculateAverageAPR(
+    const averageAPR = calculateAverageAPR(
       daysCount.value,
       dailyData.value,
-      priceToTick.value[lowerBoundPrice.value],
-      priceToTick.value[upperBoundPrice.value],
-      positionLiquidity.value,
-      volumeFee.value
+      lowerTickValue,
+      upperTickValue,
+      positionLiquidity.value
     );
+
+    return {
+      dailyAPR,
+      averageAPR
+    };
   } catch (err) {
-    console.error('Error calculating average APR:', err);
+    console.error('Error calculating APR data:', err);
     return null;
   }
 });
@@ -169,7 +182,8 @@ class MetrixApiBatchUrlBuilder {
     try {
       const url = this.buildFromCalls(calls);
       // const finalUrl = useCorsProxy ? `https://corsproxy.io/?${encodeURIComponent(url)}` : url;
-      const response = await fetch('/mockdata.json');
+      // const response = await fetch(finalUrl);
+      const response = await fetch('/mockdata_28_09.json');
 
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
@@ -192,13 +206,13 @@ class MetrixApiBatchUrlBuilder {
 async function fetchLiquidityData(poolId: string) {
   try {
     const builder = new MetrixApiBatchUrlBuilder();
-    const [{ ticks }, _temp, priceDataResponse] = await builder.fetchAndFlatten([
+    const [{ ticks }, { dailyHistory }, priceDataResponse] = await builder.fetchAndFlatten([
       {
         method: 'exchanges.getPoolTicks',
         body: {
           exchange: 'orca',
           network: 'solana',
-          poolAddress: 'Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE',
+          poolAddress: poolId,
           token0Decimals: 9,
           token1Decimals: 6,
         },
@@ -208,7 +222,7 @@ async function fetchLiquidityData(poolId: string) {
         body: {
           exchange: 'orca',
           network: 'solana',
-          poolAddress: 'Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE',
+          poolAddress: poolId,
           feeTier: '400',
           apiKey: 1,
           baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
@@ -221,12 +235,12 @@ async function fetchLiquidityData(poolId: string) {
           baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
           exchange: 'orca',
           network: 'solana',
-          poolAddress: 'Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE',
+          poolAddress: poolId,
         },
       },
     ], true);
 
-    return { ticks, priceData: priceDataResponse };
+    return { ticks, priceData: priceDataResponse, dailyHistory };
   } catch (err) {
     throw new Error('Error fetching data: ' + (err as Error).message);
   }
@@ -430,6 +444,7 @@ async function loadData() {
     const response = await fetchLiquidityData(id.value);
     tickData.value = response.ticks;
     priceData.value = response.priceData;
+    historyData.value = response.dailyHistory || [];
   } catch (err) {
     console.error(err);
     error.value = (err as Error).message;
