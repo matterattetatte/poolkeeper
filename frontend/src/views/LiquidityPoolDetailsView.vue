@@ -7,7 +7,18 @@
       <div class="mt-8">
         <svg id="liquidityChart" class="w-full h-96"></svg>
         <div class="mt-4">
-          <p>Current Price: <span>{{ currentPrice }}</span></p>
+          <label for="dateRange" class="block mb-2 font-medium">Select Date (for historical data):</label>
+          <input
+            type="range"
+            id="dateRange"
+            name="dateRange"
+            min="-30"
+            max="0"
+            value="0"
+            step="1"
+            class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
+          >
+          <p>Date Price: <span>{{ currentPrice }}</span></p>
           <p>Lower Bound: <span>{{ streamedLowerline }} ({{ - ((1 - streamedLowerline / currentPrice) * 100).toFixed(2) }} %)</span></p>
           <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - currentPrice) / currentPrice) * 100).toFixed(2) }} %)</span></p>
           <p>APR based on current LP distribution, current price, and volume last 24h: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
@@ -36,6 +47,7 @@ const priceData = ref<any>(null);
 const positionLiquidity = ref(1000); // Configurable position liquidity
 const daysCount = ref(30); // Number of days for average APR
 const historyData = ref<any[]>([]);
+const selectedDate = ref<string | null>(null);
 
 // Computed properties
 const groupedData = computed(() => processTicks(tickData.value));
