@@ -136,6 +136,7 @@ async function checkBalances() {
 
     const { error } = await supabase.from('DeFiPools_snapshots').insert({
       date: new Date().toISOString().split('T')[0],
+      poolAddress: pool.address,
       data,
     });
 
