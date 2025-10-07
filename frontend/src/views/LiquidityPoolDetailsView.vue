@@ -20,11 +20,11 @@
             step="1"
             class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           >
-          <p>Date Price: <span>{{ currentPrice }}</span></p>
-          <p>Lower Bound: <span>{{ streamedLowerline }} ({{ - ((1 - streamedLowerline / currentPrice) * 100).toFixed(2) }} %)</span></p>
-          <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - currentPrice) / currentPrice) * 100).toFixed(2) }} %)</span></p>
+          <p>Date Price: <span>{{ activePrice }}</span></p>
+          <p>Lower Bound: <span>{{ streamedLowerline }} ({{ - ((1 - streamedLowerline / activePrice) * 100).toFixed(2) }} %)</span></p>
+          <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - activePrice) / activePrice) * 100).toFixed(2) }} %)</span></p>
           <p>APR based on current LP distribution, current price, and volume last 24h: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
-          <p>Average APR (30 days): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
+          <p>Average backtracked APR (30 days): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
         </div>
       </div>
     </div>
@@ -38,6 +38,7 @@ import * as d3 from 'd3';
 import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DailyData, DayAPRData, groupBy, indexBy } from '@/utils/lpUtils';
 import supabase from '@/lib/supabase';
 
+const todaysDate = new Date().toISOString().slice(0, 10);
 // Route
 const route = useRoute();
 const id = ref(route.params.id as string);
@@ -46,21 +47,65 @@ const id = ref(route.params.id as string);
 const loading = ref(true);
 const error = ref<string | null>(null);
 const fullLPData = ref<any>(null);
-const tickData = ref<any[]>([]);
-const priceData = ref<any>(null);
 const positionLiquidity = ref(1000); // Configurable position liquidity
 const daysCount = ref(30); // Number of days for average APR
-const historyData = ref<any[]>([]);
 const selectedDayOffset = ref(0);
+
+const displayedDate = computed(() => {
+  const date = new Date();
+  date.setDate(date.getDate() + Number(selectedDayOffset.value));
+  return date.toISOString().slice(0, 10);
+});
+
+const todaysTickData = computed(() => {
+  if (!fullLPData.value) return [];
+
+  return fullLPData.value.get(todaysDate).data[0].ticks
+});
+
+const todaysPriceData = computed(() => {
+  if (!fullLPData.value) return null;
+
+  return fullLPData.value.get(todaysDate).data[2]
+});
+
+const tickData = computed(() => {
+  if (!fullLPData.value) return [];
+
+  return fullLPData.value.get(displayedDate.value).data[0].ticks
+});
+
+const historyData = computed(() => {
+  if (!fullLPData.value) return [];
+
+  return fullLPData.value.get(displayedDate.value).data[1].dailyHistory
+});
+
+const priceData = computed(() => {
+  if (!fullLPData.value) return null;
+
+  return fullLPData.value.get(displayedDate.value).data[2]
+});
 
 // Computed properties
 const groupedData = computed(() => processTicks(tickData.value));
-const labels = computed(() => groupedData.value.map(g => g.averagePrice.toFixed(1)));
-const data = computed(() => groupedData.value.map(g => Math.abs(g.totalLiquidity)));
+const labels = computed(() => processTicks(todaysTickData.value).map(g => g.averagePrice.toFixed(1)));
+const data = computed(() => processTicks(todaysTickData.value).map(g => Math.abs(g.totalLiquidity)));
 
 const priceToTick = computed(() => createPriceToTickMap(tickData.value));
 
-const currentPrice = computed(() => {
+const activePriceToday = computed(() => {
+  if (!todaysPriceData.value?.token0?.price || !labels.value.length) return null;
+  const currentPriceTick = labels.value.reduce(
+    (closestIdx, curr, idx) => (
+      Math.abs(Number(curr) - todaysPriceData.value.token0.price) < Math.abs(Number(labels.value[closestIdx]) - todaysPriceData.value.token0.price) ? idx : closestIdx
+    ),
+    0
+  );
+  return labels.value[currentPriceTick];
+});
+
+const activePrice = computed(() => {
   if (!priceData.value?.token0?.price || !labels.value.length) return null;
   const currentPriceTick = labels.value.reduce(
     (closestIdx, curr, idx) => (
@@ -71,21 +116,15 @@ const currentPrice = computed(() => {
   return labels.value[currentPriceTick];
 });
 
-const displayedDate = computed(() => {
-  const date = new Date();
-  date.setDate(date.getDate() + Number(selectedDayOffset.value));
-  return date.toISOString().slice(0, 10);
-});
-
 const lowerBoundPrice = ref<string | null>(null);
 const upperBoundPrice = ref<string | null>(null);
 const streamedLowerline = ref<number | null>(null);
 const streamedUpperline = ref<number | null>(null);
 
 const initialBounds = computed(() => {
-  if (!currentPrice.value || !labels.value.length) return { lower: null, upper: null };
-  const lowerBound = Number(currentPrice.value) * 0.9;
-  const upperBound = Number(currentPrice.value) * 1.1;
+  if (!activePrice.value || !labels.value.length || streamedLowerline.value) return { lower: null, upper: null };
+  const lowerBound = Number(activePriceToday.value) * 0.9;
+  const upperBound = Number(activePriceToday.value) * 1.1;
   const lowerBoundTick = labels.value.reduce(
     (closestIdx, curr, idx) => (
       Math.abs(Number(curr) - lowerBound) < Math.abs(Number(labels.value[closestIdx]) - lowerBound) ? idx : closestIdx
@@ -98,6 +137,7 @@ const initialBounds = computed(() => {
     ),
     0
   );
+
   return { lower: labels.value[lowerBoundTick], upper: labels.value[upperBoundTick] };
 });
 
@@ -139,7 +179,7 @@ const aprData = computed((): { dailyAPR: DayAPRData | null; averageAPR: { averag
     const upperTickValue = priceToTick.value[closestUpperTick];
 
     // check if we are out of bounds, lower tick higher than current price or upper tick lower than current price
-    if ((lowerTickValue > priceToTick.value[currentPrice.value!]!) || (upperTickValue < priceToTick.value[currentPrice.value!]!)) {
+    if ((lowerTickValue > priceToTick.value[activePrice.value!]!) || (upperTickValue < priceToTick.value[activePrice.value!]!)) {
       return { dailyAPR: { date: '', feesEarned: 0, price: 0, dailyAPR: 0 }, averageAPR: { averageAPR: 0, dailyAPRArray: [] } };
     }
 
@@ -153,10 +193,10 @@ const aprData = computed((): { dailyAPR: DayAPRData | null; averageAPR: { averag
 
     const averageAPR = calculateAverageAPR(
       daysCount.value,
-      dailyData.value,
       lowerTickValue,
       upperTickValue,
-      positionLiquidity.value
+      positionLiquidity.value,
+      fullLPData.value,
     );
 
     return {
@@ -194,7 +234,7 @@ async function fetchLiquidityData(poolId: string) {
 
 // Render chart with D3.js
 function renderChart() {
-  if (!groupedData.value.length || !currentPrice.value || !lowerBoundPrice.value || !upperBoundPrice.value) {
+  if (!groupedData.value.length || !activePrice.value || !lowerBoundPrice.value || !upperBoundPrice.value) {
     console.error('Invalid data for rendering chart');
     return;
   }
@@ -282,8 +322,8 @@ function renderChart() {
   // Current price line
   svg.append('line')
     .attr('class', 'current-price')
-    .attr('x1', priceToX(currentPrice.value!))
-    .attr('x2', priceToX(currentPrice.value!))
+    .attr('x1', priceToX(activePrice.value!))
+    .attr('x2', priceToX(activePrice.value!))
     .attr('y1', 0)
     .attr('y2', height)
     .attr('stroke', 'red')
@@ -405,7 +445,7 @@ watch(() => route.params.id, (newId) => {
 });
 
 // Watch for changes in computed properties to re-render chart
-watch([groupedData, currentPrice, lowerBoundPrice, upperBoundPrice], () => {
+watch([groupedData, activePrice, lowerBoundPrice, upperBoundPrice], () => {
   renderChart();
 });
 

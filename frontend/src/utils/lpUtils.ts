@@ -1,5 +1,7 @@
 // src/utils/lpUtils.ts
 
+import { Json } from "@/lib/database.types";
+
 // Interface for dailyData
 export interface DailyData {
   date: string;
@@ -63,22 +65,33 @@ export function calculateDayAPR(
  */
 export function calculateAverageAPR(
   daysCount: number,
-  dailyData: DailyData[],
   lowerTick: number,
   upperTick: number,
   positionLiquidity: number,
+  fullLPData: Map<string, Json>,
 ): { averageAPR: number; dailyAPRArray: DayAPRData[] } {
   const dailyAPRArray: DayAPRData[] = [];
   let aprSum = 0;
 
-  for (let i = 0; i < daysCount; i++) {
+  let i
+  for (i = 0; i < daysCount; i++) {
+    const dateKey = new Date((new Date()).setDate((new Date()).getDate() - i)).toISOString().split('T')[0];
+    const { data } = fullLPData.get(dateKey) || {}
+
+    if (!data) break;
+
+    const dailyData = data[1].dailyHistory as DailyData[];
+
+    dailyData[i].ticks = data[0].ticks
+
+    if (!dailyData) break
     if (i >= dailyData.length) break;
     const dayAPRData = calculateDayAPR(i, dailyData, lowerTick, upperTick, positionLiquidity);
     dailyAPRArray.push(dayAPRData);
     aprSum += dayAPRData.dailyAPR;
   }
 
-  const averageAPR = daysCount > 0 ? aprSum / Math.min(daysCount, dailyData.length) : 0;
+  const averageAPR = daysCount > 0 ? aprSum / Math.min(daysCount, i + 1) : 0;
   return { averageAPR, dailyAPRArray };
 }
 
