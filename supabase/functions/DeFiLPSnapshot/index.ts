@@ -32,9 +32,10 @@ class MetrixApiBatchUrlBuilder {
   async fetchAndFlatten(calls: Call[], useCorsProxy: boolean = false): Promise<Record<string, any>[]> {
     try {
       const url = this.buildFromCalls(calls);
-      // const finalUrl = useCorsProxy ? `https://corsproxy.io/?${encodeURIComponent(url)}` : url;
-      // const response = await fetch(finalUrl);
-      const response = await fetch('/mockdata_28_09.json');
+      console.log('url', url)
+      const finalUrl = useCorsProxy ? `https://corsproxy.io/?${encodeURIComponent(url)}` : url;
+      const response = await fetch(finalUrl);
+      // const response = await fetch(url);
 
       if (!response.ok) {
         throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
@@ -43,6 +44,7 @@ class MetrixApiBatchUrlBuilder {
       const data: ApiResponse[] = await response.json();
       return data.map((item, index) => {
         if (!item.result?.data?.json) {
+          console.log('item', item)
           throw new Error(`Invalid response structure for call at index ${index}`);
         }
         return item.result.data.json;
@@ -57,23 +59,22 @@ const pools = [
     {
         address: '3ucNos4NbumPLZNWztqGHNFFgkHeRMBQAVemeeomsUxv',
         network: 'solana',
-        exchange: 'jupiter',
-        baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // sol or usdc?
+        exchange: 'raydium',
+        baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // usdc
     },
     {
-        address: '0x8ad599c3a0ff1de082011efddc58f1908eb6e6d8',
+        address: 'Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE',
         network: 'solana',
         exchange: 'orca',
-        baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // sol or usdc?
+        baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // usdc
     },
     {
-        address: '6R4r93V5fcMzc13CL2enEepDSYcr4Qx3ptZBDwudTXCo', // nvda/usdc
+        address: '6R4r93V5fcMzc13CL2enEepDSYcr4Qx3ptZBDwudTXCo', // usdc
         network: 'solana',
         exchange: 'orca',
-        baseTokenAddress: '0x000'
+        baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'
     },
 ]
-
 
 
 async function fetchLiquidityData(exchange, network, poolId, baseTokenAddress) {
@@ -93,8 +94,8 @@ async function fetchLiquidityData(exchange, network, poolId, baseTokenAddress) {
       {
         method: 'exchanges.getPoolHistory',
         body: {
-          exchange: 'orca',
-          network: 'solana',
+          exchange,
+          network,
           poolAddress: poolId,
           feeTier: '400',
           apiKey: 1,
@@ -106,15 +107,60 @@ async function fetchLiquidityData(exchange, network, poolId, baseTokenAddress) {
         body: {
           apiKey: 1,
           baseTokenAddress,
-          exchange: 'orca',
-          network: 'solana',
+          exchange,
+          network,
           poolAddress: poolId,
         },
       },
     ], true);
 
-    console.log('daata to store', data)
+    console.log('data to store', data)
+
+    return data
   } catch (err) {
     throw new Error('Error fetching data: ' + (err as Error).message);
   }
 }
+
+
+import { serve } from 'https://deno.land/std@0.201.0/http/server.ts';
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
+
+async function checkBalances() {
+  for (const pool of pools) {
+    const data = await fetchLiquidityData(pool.exchange, pool.network, pool.address, pool.baseTokenAddress);
+    console.log('Fetched data for pool:', pool.address, data);
+
+    const { error } = await supabase.from('DeFiPools_snapshots').insert({
+      date: new Date().toISOString().split('T')[0],
+      data,
+    });
+
+    console.log('Error?:', error)
+  }
+}
+
+
+serve(async (req)=>{
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', {
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
+  }
+  try {
+    await checkBalances();
+    return new Response('Balances checked and alerts sent if necessary.', {
+      status: 200
+    });
+  } catch (error) {
+    console.error('Error in Edge Function:', error);
+    return new Response('Internal Server Error', {
+      status: 500
+    });
+  }
+});

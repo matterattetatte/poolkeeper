@@ -7,14 +7,16 @@
       <div class="mt-8">
         <svg id="liquidityChart" class="w-full h-96"></svg>
         <div class="mt-4">
-          <label for="dateRange" class="block mb-2 font-medium">Select Date (for historical data):</label>
+          <label for="dateRange" class="block mb-2 font-medium">
+            Select Date (Current: {{ displayedDate }})
+          </label>
           <input
             type="range"
             id="dateRange"
             name="dateRange"
             min="-30"
             max="0"
-            value="0"
+            v-model="selectedDayOffset"
             step="1"
             class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer"
           >
@@ -47,7 +49,7 @@ const priceData = ref<any>(null);
 const positionLiquidity = ref(1000); // Configurable position liquidity
 const daysCount = ref(30); // Number of days for average APR
 const historyData = ref<any[]>([]);
-const selectedDate = ref<string | null>(null);
+const selectedDayOffset = ref(0);
 
 // Computed properties
 const groupedData = computed(() => processTicks(tickData.value));
@@ -65,6 +67,12 @@ const currentPrice = computed(() => {
     0
   );
   return labels.value[currentPriceTick];
+});
+
+const displayedDate = computed(() => {
+  const date = new Date();
+  date.setDate(date.getDate() + Number(selectedDayOffset.value));
+  return date.toISOString().slice(0, 10);
 });
 
 const lowerBoundPrice = ref<string | null>(null);
@@ -159,100 +167,14 @@ const aprData = computed((): { dailyAPR: DayAPRData | null; averageAPR: { averag
   }
 });
 
-interface Call {
-  method: string;
-  body: Record<string, any>;
-}
-
-interface ApiResponse {
-  result?: {
-    data?: {
-      json?: Record<string, any>;
-    };
-  };
-}
-
-class MetrixApiBatchUrlBuilder {
-  private baseUrl: string;
-
-  constructor(baseUrl: string = 'https://app.metrix.finance/api/trpc') {
-    this.baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-  }
-
-  buildFromCalls(calls: Call[]): string {
-    const methodsPart = calls.map(call => call.method).join(',');
-    const inputObj: Record<string, { json: Record<string, any> }> = {};
-    calls.forEach((call, idx) => {
-      inputObj[idx] = { json: call.body };
-    });
-    const inputJson = JSON.stringify(inputObj);
-    const encodedInput = encodeURIComponent(inputJson);
-    return `${this.baseUrl}/${methodsPart}?batch=1&input=${encodedInput}`;
-  }
-
-  async fetchAndFlatten(calls: Call[], useCorsProxy: boolean = false): Promise<Record<string, any>[]> {
-    try {
-      const url = this.buildFromCalls(calls);
-      // const finalUrl = useCorsProxy ? `https://corsproxy.io/?${encodeURIComponent(url)}` : url;
-      // const response = await fetch(finalUrl);
-      const response = await fetch('/mockdata_28_09.json');
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
-      }
-
-      const data: ApiResponse[] = await response.json();
-      return data.map((item, index) => {
-        if (!item.result?.data?.json) {
-          throw new Error(`Invalid response structure for call at index ${index}`);
-        }
-        return item.result.data.json;
-      });
-    } catch (err) {
-      throw new Error(`Error fetching and flattening data: ${(err as Error).message}`);
-    }
-  }
-}
-
 // Fetch liquidity data
 async function fetchLiquidityData(poolId: string) {
   try {
-    const builder = new MetrixApiBatchUrlBuilder();
-    const [{ ticks }, { dailyHistory }, priceDataResponse] = await builder.fetchAndFlatten([
-      {
-        method: 'exchanges.getPoolTicks',
-        body: {
-          exchange: 'orca',
-          network: 'solana',
-          poolAddress: poolId,
-          token0Decimals: 9,
-          token1Decimals: 6,
-        },
-      },
-      {
-        method: 'exchanges.getPoolHistory',
-        body: {
-          exchange: 'orca',
-          network: 'solana',
-          poolAddress: poolId,
-          feeTier: '400',
-          apiKey: 1,
-          baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-        },
-      },
-      {
-        method: 'exchanges.getSimulatePool',
-        body: {
-          apiKey: 1,
-          baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
-          exchange: 'orca',
-          network: 'solana',
-          poolAddress: poolId,
-        },
-      },
-    ], true);
+    debugger
 
-    return { ticks, priceData: priceDataResponse, dailyHistory };
+    // todo: get data from supabase
+
+    // return { ticks, priceData: priceDataResponse, dailyHistory };
   } catch (err) {
     throw new Error('Error fetching data: ' + (err as Error).message);
   }
