@@ -35,7 +35,8 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import * as d3 from 'd3';
-import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DailyData, DayAPRData } from '@/utils/lpUtils';
+import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DailyData, DayAPRData, groupBy, indexBy } from '@/utils/lpUtils';
+import supabase from '@/lib/supabase';
 
 // Route
 const route = useRoute();
@@ -44,6 +45,7 @@ const id = ref(route.params.id as string);
 // State
 const loading = ref(true);
 const error = ref<string | null>(null);
+const fullLPData = ref<any>(null);
 const tickData = ref<any[]>([]);
 const priceData = ref<any>(null);
 const positionLiquidity = ref(1000); // Configurable position liquidity
@@ -170,11 +172,21 @@ const aprData = computed((): { dailyAPR: DayAPRData | null; averageAPR: { averag
 // Fetch liquidity data
 async function fetchLiquidityData(poolId: string) {
   try {
-    debugger
+   const { data, error } = await supabase
+    .from('DeFiPools_snapshots')
+    .select('*')
+    .eq('poolAddress', poolId)
+    // .order('date', { ascending: false });
 
-    // todo: get data from supabase
+    if (error) {
+      throw new Error('Supabase error: ' + error.message);
+    }
 
-    // return { ticks, priceData: priceDataResponse, dailyHistory };
+    const indexedByDate = indexBy(data || [], (item) => item.date);
+
+    console.log('Supabase data:', indexedByDate);    
+
+    return indexedByDate
   } catch (err) {
     throw new Error('Error fetching data: ' + (err as Error).message);
   }
@@ -376,9 +388,8 @@ async function loadData() {
   error.value = null;
   try {
     const response = await fetchLiquidityData(id.value);
-    tickData.value = response.ticks;
-    priceData.value = response.priceData;
-    historyData.value = response.dailyHistory || [];
+
+    fullLPData.value = response;
   } catch (err) {
     console.error(err);
     error.value = (err as Error).message;

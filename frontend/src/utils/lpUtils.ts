@@ -166,3 +166,12 @@ export function generateDailyData(tickData: any[], priceData: any, historyData: 
     },
   ];
 }
+
+export const indexBy = <T>(array: T[], func: (item: T) => string): Map<string, T> => {
+  const map = new Map<string, T>();
+  array.forEach(item => {
+    const key = func(item);
+    map.set(key, item); // overwrite if key repeats, so keys must be unique
+  });
+  return map;
+};
