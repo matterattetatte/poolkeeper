@@ -28,6 +28,16 @@
         </div>
       </div>
     </div>
+    <ComingSoon>
+      <button>
+        Compare with other pools...
+      </button>
+    </ComingSoon>
+    <ComingSoon>
+      <button>
+        🤖 Ask AI verdict for LP...
+      </button>
+    </ComingSoon>
   </main>
 </template>
 
@@ -37,6 +47,7 @@ import { useRoute } from 'vue-router';
 import * as d3 from 'd3';
 import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DailyData, DayAPRData, groupBy, indexBy } from '@/utils/lpUtils';
 import supabase from '@/lib/supabase';
+import ComingSoon from '@/components/ComingSoon.vue';
 
 const todaysDate = new Date().toISOString().slice(0, 10);
 // Route
