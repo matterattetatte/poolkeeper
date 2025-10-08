@@ -58,7 +58,7 @@ class MetrixApiBatchUrlBuilder {
 const pools = [
     {
         address: '3ucNos4NbumPLZNWztqGHNFFgkHeRMBQAVemeeomsUxv',
-        name: 'WSOL-USDC (Raydium)',
+        name: 'WSOL/USDC (Raydium)',
         network: 'solana',
         exchange: 'raydium',
         baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // usdc
@@ -72,7 +72,7 @@ const pools = [
     },
     {
         address: '6R4r93V5fcMzc13CL2enEepDSYcr4Qx3ptZBDwudTXCo',
-        name: 'NVDAx-USDC (Orca)',
+        name: 'NVDAx/USDC (Orca)',
         network: 'solana',
         exchange: 'orca',
         baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v'  // usdc

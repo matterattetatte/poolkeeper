@@ -1,7 +1,7 @@
 <template>
   <main>
     <div class="container mx-auto p-4">
-      <h1 class="text-2xl font-bold mb-4">Liquidity Pools for: {{ route.query.name }}</h1>
+      <h1 class="text-2xl font-bold mb-4">Details for {{ route.query.name }}</h1>
       <div v-if="loading" class="text-center">Loading...</div>
       <div v-else-if="error" class="text-red-500">{{ error }}</div>
       <div class="mt-8">
@@ -25,6 +25,16 @@
           <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - activePrice) / activePrice) * 100).toFixed(2) }} %)</span></p>
           <p>APR based on selected date's LP distribution, price, and volume: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
           <p>Average backtracked APR (up to 30 days from selected date): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
+          <p>
+            More details on:
+            <a
+              :href="`https://dexscreener.com/solana/${route.params.id}`"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="text-blue-500 underline"
+            >Dexscreener
+            </a>
+          </p>
         </div>
       </div>
     </div>
@@ -290,6 +300,9 @@ function renderChart() {
     const step = (labels.value.length - 1) / (maxTicks - 1);
     tickLabels = Array.from({ length: maxTicks }, (_, i) => labels.value[Math.round(i * step)]);
   }
+
+  // 350,000,000,000,000 divided by 10e9 in display....
+
   svg.append('g')
     .attr('transform', `translate(0,${height})`)
     .call(d3.axisBottom(x).tickValues(tickLabels))
@@ -297,9 +310,12 @@ function renderChart() {
     .attr('transform', 'rotate(-45)')
     .style('text-anchor', 'end');
 
-  // Y-axis
   svg.append('g')
-    .call(d3.axisLeft(y));
+    .call(d3.axisLeft(y).tickFormat((d: number) => {
+      const normalized = d / 1e9
+
+      return normalized / 10e3 + 'K'
+    }));
 
   // X-axis label
   svg.append('text')
@@ -307,7 +323,7 @@ function renderChart() {
     .attr('y', height + margin.bottom - 10)
     .style('text-anchor', 'middle')
     .style('fill', 'white')
-    .text('Price');
+    .text(`Price (${route.query.name?.split('(')[0]})`);
 
   // Y-axis label
   svg.append('text')
@@ -316,7 +332,7 @@ function renderChart() {
     .attr('y', -margin.left + 20)
     .style('text-anchor', 'middle')
     .style('fill', 'white')
-    .text('Liquidity');
+    .text('Liquidity (USD)');
 
   // Title
   svg.append('text')
@@ -326,7 +342,7 @@ function renderChart() {
     .style('font-size', '16px')
     .style('font-weight', 'bold')
     .style('fill', 'white')
-    .text('Liquidity Pool Distribution');
+    .text(`Liquidity Pool Distribution (Total TVL: ${data.value.reduce((a, b) => a + b / 10e9, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })})`);
 
   // Bars
   svg.selectAll('.bar')
