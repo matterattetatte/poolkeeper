@@ -1,7 +1,7 @@
 <template>
   <main>
     <div class="container mx-auto p-4">
-      <h1 class="text-2xl font-bold mb-4">Liquidity Pools for ID: {{ id }}</h1>
+      <h1 class="text-2xl font-bold mb-4">Liquidity Pools for: {{ route.query.name }}</h1>
       <div v-if="loading" class="text-center">Loading...</div>
       <div v-else-if="error" class="text-red-500">{{ error }}</div>
       <div class="mt-8">
@@ -41,7 +41,6 @@ import supabase from '@/lib/supabase';
 const todaysDate = new Date().toISOString().slice(0, 10);
 // Route
 const route = useRoute();
-const id = ref(route.params.id as string);
 
 // State
 const loading = ref(true);
@@ -427,7 +426,7 @@ async function loadData() {
   loading.value = true;
   error.value = null;
   try {
-    const response = await fetchLiquidityData(id.value);
+    const response = await fetchLiquidityData(route.params.id as string);
 
     fullLPData.value = response;
   } catch (err) {
