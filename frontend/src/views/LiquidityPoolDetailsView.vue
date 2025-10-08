@@ -24,7 +24,7 @@
           <p>Lower Bound: <span>{{ streamedLowerline }} ({{ - ((1 - streamedLowerline / activePrice) * 100).toFixed(2) }} %)</span></p>
           <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - activePrice) / activePrice) * 100).toFixed(2) }} %)</span></p>
           <p>APR based on selected date's LP distribution, price, and volume: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
-          <p>Average backtracked APR (30 days): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
+          <p>Average backtracked APR (up to 30 days from selected date): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
         </div>
       </div>
     </div>
