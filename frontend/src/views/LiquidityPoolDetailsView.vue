@@ -5,7 +5,7 @@
       <div v-if="loading" class="text-center">Loading...</div>
       <div v-else-if="error" class="text-red-500">{{ error }}</div>
       <div class="mt-8">
-        <svg id="liquidityChart" class="w-full h-96"></svg>
+        <svg id="liquidityChart" style="min-width: 100%"></svg>
         <div class="mt-4">
           <label for="dateRange" class="block mb-2 font-medium">
             Select Date (Current: {{ displayedDate }})
@@ -128,7 +128,7 @@ const activePrice = computed(() => {
     ),
     0
   );
-  debugger
+
   return labels.value[currentPriceTick];
 });
 
@@ -154,7 +154,6 @@ const initialBounds = computed(() => {
     0
   );
 
-  debugger
   return { lower: labels.value[lowerBoundTick], upper: labels.value[upperBoundTick] };
 });
 
@@ -257,9 +256,9 @@ function renderChart() {
   }
 
   // Chart dimensions
-  const margin = { top: 40, right: 30, bottom: 50, left: 60 };
-  const width = 800 - margin.left - margin.right;
-  const height = 384 - margin.top - margin.bottom;
+  const margin = { top: 80, right: 150, bottom: 80, left: 150 };
+  const width = 900 - margin.left - margin.right;
+  const height = 400 - margin.top - margin.bottom;
 
   // Clear existing SVG content
   d3.select('#liquidityChart').selectAll('*').remove();
@@ -282,10 +281,18 @@ function renderChart() {
     .domain([0, d3.max(data.value)! * 1.1])
     .range([height, 0]);
 
-  // X-axis with reduced labels
+  // X-axis with max 5 ticks
+  const maxTicks = 30;
+  let tickLabels: string[] = [];
+  if (labels.value.length <= maxTicks) {
+    tickLabels = labels.value;
+  } else {
+    const step = (labels.value.length - 1) / (maxTicks - 1);
+    tickLabels = Array.from({ length: maxTicks }, (_, i) => labels.value[Math.round(i * step)]);
+  }
   svg.append('g')
     .attr('transform', `translate(0,${height})`)
-    .call(d3.axisBottom(x).tickValues(labels.value.filter((_, i) => i % 100 === 0))) // Show every 5th label
+    .call(d3.axisBottom(x).tickValues(tickLabels))
     .selectAll('text')
     .attr('transform', 'rotate(-45)')
     .style('text-anchor', 'end');
@@ -299,6 +306,7 @@ function renderChart() {
     .attr('x', width / 2)
     .attr('y', height + margin.bottom - 10)
     .style('text-anchor', 'middle')
+    .style('fill', 'white')
     .text('Price');
 
   // Y-axis label
@@ -307,6 +315,7 @@ function renderChart() {
     .attr('x', -height / 2)
     .attr('y', -margin.left + 20)
     .style('text-anchor', 'middle')
+    .style('fill', 'white')
     .text('Liquidity');
 
   // Title
@@ -316,6 +325,7 @@ function renderChart() {
     .style('text-anchor', 'middle')
     .style('font-size', '16px')
     .style('font-weight', 'bold')
+    .style('fill', 'white')
     .text('Liquidity Pool Distribution');
 
   // Bars
