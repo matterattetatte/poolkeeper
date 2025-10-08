@@ -94,10 +94,12 @@ const data = computed(() => processTicks(todaysTickData.value).map(g => Math.abs
 const priceToTick = computed(() => createPriceToTickMap(tickData.value));
 
 const activePriceToday = computed(() => {
-  if (!todaysPriceData.value?.token0?.price || !labels.value.length) return null;
+  const tokenPrice = Math.max(todaysPriceData.value?.token0?.price || 0, 1 / (todaysPriceData.value?.token0?.price || 1));
+  if (!tokenPrice || !labels.value.length) return null;
+
   const currentPriceTick = labels.value.reduce(
     (closestIdx, curr, idx) => (
-      Math.abs(Number(curr) - todaysPriceData.value.token0.price) < Math.abs(Number(labels.value[closestIdx]) - todaysPriceData.value.token0.price) ? idx : closestIdx
+      Math.abs(Number(curr) - tokenPrice) < Math.abs(Number(labels.value[closestIdx]) - tokenPrice) ? idx : closestIdx
     ),
     0
   );
@@ -106,12 +108,16 @@ const activePriceToday = computed(() => {
 
 const activePrice = computed(() => {
   if (!priceData.value?.token0?.price || !labels.value.length) return null;
+
+  const mainTokenPrice = Math.max(priceData.value.token0.price, 1 / priceData.value.token0.price);
+
   const currentPriceTick = labels.value.reduce(
     (closestIdx, curr, idx) => (
-      Math.abs(Number(curr) - priceData.value.token0.price) < Math.abs(Number(labels.value[closestIdx]) - priceData.value.token0.price) ? idx : closestIdx
+      Math.abs(Number(curr) - mainTokenPrice) < Math.abs(Number(labels.value[closestIdx]) - mainTokenPrice) ? idx : closestIdx
     ),
     0
   );
+  debugger
   return labels.value[currentPriceTick];
 });
 
@@ -121,7 +127,7 @@ const streamedLowerline = ref<number | null>(null);
 const streamedUpperline = ref<number | null>(null);
 
 const initialBounds = computed(() => {
-  if (!activePrice.value || !labels.value.length || streamedLowerline.value) return { lower: null, upper: null };
+  if (!activePriceToday.value || activePriceToday.value === '0.0' || !labels.value.length || streamedLowerline.value) return { lower: null, upper: null };
   const lowerBound = Number(activePriceToday.value) * 0.9;
   const upperBound = Number(activePriceToday.value) * 1.1;
   const lowerBoundTick = labels.value.reduce(
@@ -137,6 +143,7 @@ const initialBounds = computed(() => {
     0
   );
 
+  debugger
   return { lower: labels.value[lowerBoundTick], upper: labels.value[upperBoundTick] };
 });
 
@@ -436,12 +443,6 @@ async function loadData() {
     loading.value = false;
   }
 }
-
-// Watch for route changes
-watch(() => route.params.id, (newId) => {
-  id.value = newId as string;
-  loadData();
-});
 
 // Watch for changes in computed properties to re-render chart
 watch([groupedData, activePrice, lowerBoundPrice, upperBoundPrice], () => {
