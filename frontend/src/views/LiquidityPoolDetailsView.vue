@@ -23,7 +23,7 @@
           <p>Date Price: <span>{{ activePrice }}</span></p>
           <p>Lower Bound: <span>{{ streamedLowerline }} ({{ - ((1 - streamedLowerline / activePrice) * 100).toFixed(2) }} %)</span></p>
           <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - activePrice) / activePrice) * 100).toFixed(2) }} %)</span></p>
-          <p>APR based on current LP distribution, current price, and volume last 24h: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
+          <p>APR based on selected date's LP distribution, price, and volume: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
           <p>Average backtracked APR (30 days): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
         </div>
       </div>
@@ -153,7 +153,7 @@ watch(initialBounds, (newBounds) => {
 }, { immediate: true });
 
 // later: array grouped with a slider that make ssure to display the right data for the day
-const dailyData = computed(() => generateDailyData(tickData.value, priceData.value, historyData.value));
+const dailyData = computed(() => generateDailyData(tickData.value, historyData.value, priceData.value,));
 
 const aprData = computed((): { dailyAPR: DayAPRData | null; averageAPR: { averageAPR: number; dailyAPRArray: DayAPRData[] } | null } | null => {
   if (!dailyData.value.length || !streamedLowerline.value || !streamedUpperline.value) {
@@ -193,10 +193,10 @@ const aprData = computed((): { dailyAPR: DayAPRData | null; averageAPR: { averag
 
     const averageAPR = calculateAverageAPR(
       daysCount.value,
+      fullLPData.value,
       lowerTickValue,
       upperTickValue,
       positionLiquidity.value,
-      fullLPData.value,
     );
 
     return {

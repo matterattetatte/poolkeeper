@@ -65,10 +65,10 @@ export function calculateDayAPR(
  */
 export function calculateAverageAPR(
   daysCount: number,
+  fullLPData: Map<string, Json>,
   lowerTick: number,
   upperTick: number,
   positionLiquidity: number,
-  fullLPData: Map<string, Json>,
 ): { averageAPR: number; dailyAPRArray: DayAPRData[] } {
   const dailyAPRArray: DayAPRData[] = [];
   let aprSum = 0;
@@ -80,9 +80,7 @@ export function calculateAverageAPR(
 
     if (!data) break;
 
-    const dailyData = data[1].dailyHistory as DailyData[];
-
-    dailyData[i].ticks = data[0].ticks
+    const dailyData = generateDailyData(data[0].ticks, data[1].dailyHistory, data[2])
 
     if (!dailyData) break
     if (i >= dailyData.length) break;
@@ -91,7 +89,8 @@ export function calculateAverageAPR(
     aprSum += dayAPRData.dailyAPR;
   }
 
-  const averageAPR = daysCount > 0 ? aprSum / Math.min(daysCount, i + 1) : 0;
+  const averageAPR = daysCount > 0 ? aprSum / (i + 1) : 0;
+
   return { averageAPR, dailyAPRArray };
 }
 
@@ -154,7 +153,7 @@ export function createPriceToTickMap(tickData: any[]): Record<string, number> {
  * @param priceData - Object with { token0: { price } }.
  * @returns Array of DailyData for APR calculations.
  */
-export function generateDailyData(tickData: any[], priceData: any, historyData: any[]): DailyData[] {
+export function generateDailyData(tickData: any[], historyData: any[], priceData: any,): DailyData[] {
   if (!tickData.length || !priceData?.token0?.price) return [];
   const sortedTicks = tickData.slice().sort((a, b) => Number(a.tickIdx) - Number(b.tickIdx));
   let cumulativeLiquidity = 0;
