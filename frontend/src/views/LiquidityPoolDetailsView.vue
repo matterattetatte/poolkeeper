@@ -5,6 +5,13 @@
       <div v-if="loading" class="text-center">Loading...</div>
       <div v-else-if="error" class="text-red-500">{{ error }}</div>
       <div class="mt-8">
+        <div class="w-full flex justify-end mb-2">
+          <ComingSoon>
+            <button>
+              Zap into LP position...
+            </button>
+          </ComingSoon>        
+        </div>
         <svg id="liquidityChart" style="min-width: 100%"></svg>
         <div class="mt-4">
           <label for="dateRange" class="block mb-2 font-medium">
@@ -43,11 +50,7 @@
         Compare with other pools...
       </button>
     </ComingSoon>
-    <ComingSoon>
-      <button>
-        🤖 Ask AI verdict for LP...
-      </button>
-    </ComingSoon>
+      <AIBotVerdict v-if="fullLPData" :fullLPData="fullLPData" />
   </main>
 </template>
 
@@ -58,6 +61,7 @@ import * as d3 from 'd3';
 import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DailyData, DayAPRData, groupBy, indexBy } from '@/utils/lpUtils';
 import supabase from '@/lib/supabase';
 import ComingSoon from '@/components/ComingSoon.vue';
+import AIBotVerdict from '@/components/AIBotVerdict.vue';
 
 const todaysDate = new Date().toISOString().slice(0, 10);
 // Route
@@ -314,7 +318,7 @@ function renderChart() {
     .call(d3.axisLeft(y).tickFormat((d: number) => {
       const normalized = d / 1e9
 
-      return normalized / 10e3 + 'K'
+      return normalized.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })
     }));
 
   // X-axis label
