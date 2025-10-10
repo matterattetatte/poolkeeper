@@ -4,15 +4,14 @@
         <button @click="onClick" :disabled="isLoading" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded mb-4">
             📊 View AI analytics...
         </button>
-        <p>
-            {{ verdictMessage }}
-        </p>
+        <p v-html="verdictHtml"></p>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { defineProps, ref } from 'vue';
+import { computed, defineProps, ref } from 'vue';
 import { InferenceClient } from '@huggingface/inference';
+import { marked } from 'marked';
 
 const hf = new InferenceClient('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'); // temp, only for mvp
 
@@ -21,9 +20,11 @@ const props = defineProps<{
 }>();
 
 const isLoading = ref(false);
+
 const verdictMessage = ref('');
+const verdictHtml = computed(() => marked.parse(verdictMessage.value));
 
-
+console.log('verdict html', verdictHtml);
 
 const onClick = async () => {
     isLoading.value = true;
