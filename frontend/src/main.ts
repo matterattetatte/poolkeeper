@@ -7,6 +7,11 @@ import SolanaWallets from 'solana-wallets-vue';
 import 'solana-wallets-vue/styles.css'; // Default styles
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { analytics } from './firebase';
+
+console.log('Analytics initialized:', analytics);
+
+// Configure Solana wallets
 
 const walletOptions = {
   wallets: [
