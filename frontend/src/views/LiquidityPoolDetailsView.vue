@@ -304,7 +304,7 @@ function renderChart() {
     .padding(0.1);
 
   const y = d3.scaleLinear()
-    .domain([0, d3.max(data.value)! * 1.1])
+    .domain([0, d3.max(data.value)! * 1.50])
     .range([height, 0]);
 
   // X-axis with max 5 ticks
