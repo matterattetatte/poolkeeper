@@ -24,8 +24,6 @@ const isLoading = ref(false);
 const verdictMessage = ref('');
 const verdictHtml = computed(() => marked.parse(verdictMessage.value));
 
-console.log('verdict html', verdictHtml);
-
 const onClick = async () => {
     isLoading.value = true;
     verdictMessage.value = 'Thinking...';

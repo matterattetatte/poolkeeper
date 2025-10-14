@@ -338,6 +338,7 @@ function renderChart() {
     .style('fill', 'white')
     .text('Liquidity (USD)');
 
+    debugger
   // Title
   svg.append('text')
     .attr('x', width / 2)
@@ -346,7 +347,7 @@ function renderChart() {
     .style('font-size', '16px')
     .style('font-weight', 'bold')
     .style('fill', 'white')
-    .text(`Liquidity Pool Distribution (Total TVL: ${data.value.reduce((a, b) => a + b / 10e9, 0).toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })})`);
+    .text(`Liquidity Pool Distribution (Total TVL: ${todaysPriceData.value.tvl.toLocaleString('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 })})`);
 
   // Bars
   svg.selectAll('.bar')

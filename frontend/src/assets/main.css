@@ -1,6 +1,38 @@
 @import "./base.css";
 @import "tailwindcss";
 
+:root {
+  /* Base Colors */
+  --color-primary: #7456C8;
+  --color-secondary: #9A81DF;
+  --color-tertiary: #D783D8;
+  --color-accent: #A680FF;
+  --color-accent-gradient: linear-gradient(90deg, #A680FF 5%, #FF85B8 45%, #FFB070 85%);
+
+  /* Background & Surfaces */
+  --color-bg: #0C0524;
+  --color-surface: #1A103B;
+  --color-surface-light: #2C1E5A;
+
+  /* Text Colors */
+  --color-text: #F5F3FF;
+  --color-text-muted: #C6B9F0;
+  --color-text-accent: #FFB070;
+
+  /* Borders & Shadows */
+  --color-border: #3C2A7A;
+  --color-shadow: rgba(164, 128, 255, 0.25);
+
+  /* Gradient Examples */
+  --gradient-primary: linear-gradient(135deg, #7456C8, #9A81DF);
+  --gradient-accent: linear-gradient(135deg, #A680FF 5%, #FF85B8 45%, #FFB070 85%);
+}
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+}
+
 #app {
   max-width: 1280px;
   margin: 0 auto;
@@ -8,29 +40,78 @@
   font-weight: normal;
 }
 
+h1, h2, h3, h4, h5, h6 {
+  color: var(--color-accent);
+  font-weight: 600;
+  line-height: 1.2;
+  margin-bottom: 0.5em;
+}
+
+/* Restore default heading sizes Tailwind removes */
+h1 {
+  font-size: 2em;      /* Default browser size */
+  font-weight: bold;
+  margin: 0.67em 0;
+}
+
+h2 {
+  font-size: 1.5em;
+  font-weight: bold;
+  margin: 0.83em 0;
+}
+
+h3 {
+  font-size: 1.17em;
+  font-weight: bold;
+  margin: 1em 0;
+}
+
+h4 {
+  font-size: 1em;
+  font-weight: bold;
+  margin: 1.33em 0;
+}
+
+h5 {
+  font-size: 0.83em;
+  font-weight: bold;
+  margin: 1.67em 0;
+}
+
+h6 {
+  font-size: 0.67em;
+  font-weight: bold;
+  margin: 2.33em 0;
+}
+
+
+.svg-icon {
+  width: 40px;
+  height: 40px;
+  filter: brightness(0) saturate(100%) invert(63%) sepia(46%) saturate(741%) hue-rotate(224deg) brightness(101%) contrast(102%);
+  transition: 0.3s ease;
+}
+
+.svg-icon:hover {
+  filter: brightness(0) saturate(100%) invert(88%) sepia(33%) saturate(431%) hue-rotate(322deg) brightness(101%) contrast(102%);
+}
+
+/* Links & Accent Elements */
 a,
-.green {
+.accent {
   text-decoration: none;
-  color: hsla(160, 100%, 37%, 1);
-  transition: 0.4s;
-  padding: 3px;
+  color: var(--color-accent);
+  transition: 0.4s ease;
+  padding: 3px 6px;
+  border-radius: 6px;
 }
 
+/* Hover Animation */
 @media (hover: hover) {
-  a:hover {
-    background-color: hsla(160, 100%, 37%, 0.2);
-  }
-}
-
-@media (min-width: 1024px) {
-  body {
-    display: flex;
-    place-items: center;
-  }
-
-  #app {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    padding: 0 2rem;
+  a:hover,
+  .accent:hover {
+    background: var(--gradient-accent);
+    color: var(--color-bg);
+    box-shadow: 0 0 8px var(--color-shadow);
   }
 }

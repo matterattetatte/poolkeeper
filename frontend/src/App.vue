@@ -1,43 +1,27 @@
 <script setup lang="ts">
-import { RouterLink, RouterView } from "vue-router";
-import HelloWorld from "./components/HelloWorld.vue";
+import { RouterView } from "vue-router";
+import { RouterLink } from "vue-router";
 
-const isLanding = window.location.pathname === "/";
 </script>
 
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld v-if="isLanding" msg="Poolkeeper" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
+   <nav>
+    <RouterLink to="/" exact>Home</RouterLink>
+    <RouterLink to="/lps">Liquidity Pools</RouterLink>
+    <RouterLink to="/borrow">Borrowing (coming soon)</RouterLink>
+    <RouterLink to="/learn-more">Learn More</RouterLink>
+    <RouterLink to="/about">About</RouterLink>
+   </nav>
+   <br>
   <RouterView />
 </template>
 
 <style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
-}
-
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
-}
-
 nav {
   width: 100%;
   font-size: 12px;
   text-align: center;
-  margin-top: 2rem;
+  /* margin-top: 2rem; */
 }
 
 nav a.router-link-exact-active {
