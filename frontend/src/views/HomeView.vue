@@ -6,13 +6,13 @@ import Logo from '@/components/Logo.vue';
 <template>
   <main>
     <h2 class="text-center text-4xl font-bold my-8">
-      Welcome to Poolkeeper
+      Welcome to PoolKeeper
       <Logo class="inline-block h-6 w-6 ml-4" />
     </h2>
     <p class="text-center mb-8 text-2xl">
       Advanced analytics and simulation tools for liquidity providers. Make informed decisions with historical data, risk analysis, and portfolio tracking.
     </p>
-    <h2 class="text-2xl font-bold mb-4 pt-16">Why Choose Poolkeeper?</h2>
+    <h2 class="text-2xl font-bold mb-4 pt-16">Why Choose PoolKeeper?</h2>
      <div class="flex">
         <div class="w-1/3 p-4">
           <img src="https://icon.pictographic.io/image/4CZNMBXMC7Yn1auXCama.svg?stroke=45" class="svg-icon" />
