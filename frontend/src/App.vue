@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { RouterView } from "vue-router";
 import { RouterLink } from "vue-router";
+import Logo from '@/components/Logo.vue';
 
 </script>
 
 <template>
    <nav>
+    <Logo />
     <RouterLink to="/" exact>Home</RouterLink>
     <RouterLink to="/lps">Liquidity Pools</RouterLink>
     <RouterLink to="/borrow">Borrowing (coming soon)</RouterLink>
@@ -43,26 +45,8 @@ nav a:first-of-type {
 }
 
 @media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-    max-width: 300px;
-  }
-
   nav {
-    text-align: left;
-    margin-left: -1rem;
+    display: flex;
     font-size: 1rem;
 
     padding: 1rem 0;

@@ -8,7 +8,8 @@
         <div class="w-full flex justify-end mb-2">
           <ComingSoon>
             <button>
-              Zap into LP position...
+              <Logo />
+              Drop into LP position...
             </button>
           </ComingSoon>        
         </div>
@@ -62,6 +63,7 @@ import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMa
 import supabase from '@/lib/supabase';
 import ComingSoon from '@/components/ComingSoon.vue';
 import AIBotVerdict from '@/components/AIBotVerdict.vue';
+import Logo from '@/components/Logo.vue';
 
 const todaysDate = new Date().toISOString().slice(0, 10);
 // Route

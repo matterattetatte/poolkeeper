@@ -84,6 +84,9 @@ h6 {
   margin: 2.33em 0;
 }
 
+button {
+  cursor: pointer;
+}
 
 .svg-icon {
   width: 40px;

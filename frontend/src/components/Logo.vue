@@ -1,0 +1,26 @@
+<template>
+    <svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg" class="icon-accent">
+  <path d="M32 2
+       C20 18 10 29 10 41
+       C10 54 20 62 32 62
+       C44 62 54 54 54 41
+       C54 29 44 18 32 2
+       Z" fill="none" stroke="currentColor" stroke-width="4" stroke-linejoin="round"></path>
+</svg>
+</template>
+
+
+<style scoped>
+
+/* make image small */
+svg {
+  height: 30px;
+  vertical-align: middle;
+  margin-right: 10px;
+  color: var(--color-accent);
+}
+
+.svg path {
+  fill: var(--color-accent);
+}
+</style>
