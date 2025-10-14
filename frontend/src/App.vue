@@ -7,7 +7,7 @@ import ConnectWallet from '@/components/ConnectWallet.vue'
 </script>
 
 <template>
-   <nav>
+   <nav class="flex items-center justify-start">
     <Logo />
     <RouterLink to="/" exact>Home</RouterLink>
     <RouterLink to="/lps">Liquidity Pools</RouterLink>
