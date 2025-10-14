@@ -2,6 +2,7 @@
 import { RouterView } from "vue-router";
 import { RouterLink } from "vue-router";
 import Logo from '@/components/Logo.vue';
+import ConnectWallet from '@/components/ConnectWallet.vue'
 
 </script>
 
@@ -13,6 +14,7 @@ import Logo from '@/components/Logo.vue';
     <RouterLink to="/borrow">Borrowing (coming soon)</RouterLink>
     <RouterLink to="/learn-more">Learn More</RouterLink>
     <RouterLink to="/about">About</RouterLink>
+    <ConnectWallet />
    </nav>
    <br>
   <RouterView />
