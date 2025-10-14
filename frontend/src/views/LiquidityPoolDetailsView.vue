@@ -2,18 +2,30 @@
   <main>
     <div class="container mx-auto p-4">
       <h1 class="text-2xl font-bold mb-4">Details for {{ route.query.name }}</h1>
-      <div v-if="loading" class="text-center">Loading...</div>
-      <div v-else-if="error" class="text-red-500">{{ error }}</div>
       <div class="mt-8">
         <div class="w-full flex justify-end mb-2">
           <ComingSoon>
-            <button>
-              <Logo />
-              Drop into LP position...
-            </button>
-          </ComingSoon>        
+            <DropInButton />
+          </ComingSoon>   
         </div>
-        <svg id="liquidityChart" style="min-width: 100%"></svg>
+        <div style="min-height: 350px">
+          <div v-if="loading" class="text-center w-full">Loading...</div>
+          <div v-else-if="error" class="text-red-500">{{ error }}</div>
+          <div class="w-full flex">
+            <svg id="liquidityChart" style="min-width: 70%; min-height: 100%;"></svg>
+            <div v-if="!loading" class="mt-8">
+              <h2>
+                {{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%
+              </h2>
+              <p>APR based on selected date's LP distribution, price, and volume: </p>
+              <hr style="color:var(--color-primary); margin-top:16px" />
+              <h2>
+                {{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%
+              </h2>
+              <p>Average backtracked APR (up to 30 days from selected date)</p>
+            </div>
+          </div>
+        </div>
         <div class="mt-4">
           <label for="dateRange" class="block mb-2 font-medium">
             Select Date (Current: {{ displayedDate }})
@@ -31,10 +43,8 @@
           <p>Date Price: <span>{{ activePrice }}</span></p>
           <p>Lower Bound: <span>{{ streamedLowerline }} ({{ - ((1 - streamedLowerline / activePrice) * 100).toFixed(2) }} %)</span></p>
           <p>Upper Bound: <span>{{ streamedUpperline }} ({{ (((streamedUpperline - activePrice) / activePrice) * 100).toFixed(2) }} %)</span></p>
-          <p>APR based on selected date's LP distribution, price, and volume: <span>{{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
-          <p>Average backtracked APR (up to 30 days from selected date): <span>{{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%</span></p>
           <p>
-            More details on:
+            For technical analysis:
             <a
               :href="`https://dexscreener.com/solana/${route.params.id}`"
               target="_blank"
@@ -63,7 +73,7 @@ import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMa
 import supabase from '@/lib/supabase';
 import ComingSoon from '@/components/ComingSoon.vue';
 import AIBotVerdict from '@/components/AIBotVerdict.vue';
-import Logo from '@/components/Logo.vue';
+import DropInButton from '@/components/DropInButton.vue';
 
 const todaysDate = new Date().toISOString().slice(0, 10);
 // Route
@@ -340,7 +350,6 @@ function renderChart() {
     .style('fill', 'white')
     .text('Liquidity (USD)');
 
-    debugger
   // Title
   svg.append('text')
     .attr('x', width / 2)
@@ -361,7 +370,7 @@ function renderChart() {
     .attr('y', d => y(Math.abs(d.totalLiquidity)))
     .attr('width', x.bandwidth())
     .attr('height', d => height - y(Math.abs(d.totalLiquidity)))
-    .attr('fill', 'blue');
+    .attr('fill', 'var(--color-primary)');
 
   // Helper function to convert price to x-coordinate
   const priceToX = (price: string) => {
@@ -376,7 +385,7 @@ function renderChart() {
     .attr('x2', priceToX(activePrice.value!))
     .attr('y1', 0)
     .attr('y2', height)
-    .attr('stroke', 'red')
+    .attr('stroke', 'var(--color-accent)')
     .attr('stroke-width', 2);
 
   // Lower bound line
@@ -386,9 +395,9 @@ function renderChart() {
     .attr('x2', priceToX(lowerBoundPrice.value!))
     .attr('y1', 0)
     .attr('y2', height)
-    .attr('stroke', 'green')
+    .attr('stroke', 'var(--color-border)')
     .attr('stroke-width', 6)
-    .attr('stroke-dasharray', '5,5')
+    .attr('stroke-dasharray', '10,1')
     .style('cursor', 'ew-resize');
 
   // Upper bound line
@@ -398,9 +407,9 @@ function renderChart() {
     .attr('x2', priceToX(upperBoundPrice.value!))
     .attr('y1', 0)
     .attr('y2', height)
-    .attr('stroke', 'green')
+    .attr('stroke', 'var(--color-border)')
     .attr('stroke-width', 6)
-    .attr('stroke-dasharray', '5,5')
+    .attr('stroke-dasharray', '10,1')
     .style('cursor', 'ew-resize');
 
   // Assuming priceToX is a function that maps a price to an x-coordinate
