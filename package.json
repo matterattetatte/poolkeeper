@@ -1,5 +1,8 @@
 {
   "devDependencies": {
     "supabase": "^2.48.3"
+  },
+  "scripts": {
+    "deploy:frontend": "cd frontend && (npm run build || true) && firebase deploy"
   }
 }

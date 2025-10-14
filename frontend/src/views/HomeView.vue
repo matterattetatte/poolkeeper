@@ -1,9 +1,14 @@
 <script setup lang="ts">
+import Logo from '@/components/Logo.vue';
+
 </script>
 
 <template>
   <main>
-    <h2 class="text-center text-4xl font-bold my-8">Welcome to Poolkeeper</h2>
+    <h2 class="text-center text-4xl font-bold my-8">
+      Welcome to Poolkeeper
+      <Logo class="inline-block h-6 w-6 ml-4" />
+    </h2>
     <p class="text-center mb-8 text-2xl">
       Advanced analytics and simulation tools for liquidity providers. Make informed decisions with historical data, risk analysis, and portfolio tracking.
     </p>

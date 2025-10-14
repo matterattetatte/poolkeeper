@@ -23,6 +23,15 @@
                 {{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%
               </h2>
               <p>Average backtracked APR (up to 30 days from selected date)</p>
+              <!-- TODO: FIX LATER -->
+              <!-- My position liquidity size:
+              <div class="mt-2">
+                <input
+                  type="number"
+                  v-model.number="positionLiquidity"
+                  class="border border-gray-300 rounded px-2 py-1 w-32"
+                />
+              </div> -->
             </div>
           </div>
         </div>
