@@ -20,4 +20,7 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url))
     },
   },
+  optimizeDeps: {
+    include: ['solana-wallets-vue', '@solana/wallet-adapter-wallets', '@solana/web3.js'],
+  },
 })

@@ -16,9 +16,9 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.32.1",
     "@huggingface/inference": "^4.11.1",
-    "@solana/wallet-adapter-base": "^0.9.27",
-    "@solana/wallet-adapter-vue": "^0.4.5",
+    "@jup-ag/api": "^6.0.44",
     "@solana/wallet-adapter-wallets": "^0.19.37",
     "@solana/web3.js": "^1.98.4",
     "@supabase/supabase-js": "^2.74.0",
@@ -29,6 +29,7 @@
     "marked": "^16.4.0",
     "plotly": "^1.0.6",
     "plotly.js-dist-min": "^3.1.0",
+    "solana-wallets-vue": "^0.7.1",
     "vue": "^3.5.18",
     "vue-router": "^4.5.1"
   },
