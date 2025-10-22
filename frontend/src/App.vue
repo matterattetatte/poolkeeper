@@ -3,6 +3,7 @@ import { RouterView } from "vue-router";
 import { RouterLink } from "vue-router";
 import Logo from '@/components/Logo.vue';
 import ConnectWallet from '@/components/ConnectWallet.vue'
+import Footer from '@/components/Footer.vue';
 
 </script>
 
@@ -18,6 +19,7 @@ import ConnectWallet from '@/components/ConnectWallet.vue'
    </nav>
    <br>
   <RouterView />
+  <Footer />
 </template>
 
 <style scoped>
