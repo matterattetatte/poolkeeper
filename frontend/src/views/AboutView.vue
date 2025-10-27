@@ -62,7 +62,7 @@
     </p>
   </section>
 
-  <section id="disclaimer">
+  <!-- <section id="disclaimer">
     <h2>Disclaimer</h2>
     <p>
       Your money, your decision, and your risk. PoolKeeper provides data, analytics, and automation
@@ -81,7 +81,7 @@
       a registered financial adviser in any jurisdiction. Use of the platform and its tools implies
       full acceptance of these terms.
     </p>
-  </section>
+  </section> -->
 </template>
 
 <style>
