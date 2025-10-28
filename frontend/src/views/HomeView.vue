@@ -9,7 +9,7 @@ import Logo from '@/components/Logo.vue';
       Get <br /> Stress-free, <br /> LP Yield
       <Logo class="inline-block pb-2 ml-4" />
     </h1>
-    <p class="text-center mb-8 text-2xl pb-80">
+    <p class="text-center mb-8 text-2xl">
       Your command center for Solana liquidity
     </p>
   </main>
