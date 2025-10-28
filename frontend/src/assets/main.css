@@ -50,17 +50,15 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Restore default heading sizes Tailwind removes */
 h1 {
-/* background: -webkit-linear-gradient(135deg, #7456C8, #9A81DF); For older WebKit browsers */
-  background: linear-gradient(135deg, #7456C8, #FF85B8); /* Standard syntax */
+  background: var(--gradient-accent);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  font-weight: bold;
-  margin: 0.67em 0;
+  font-weight: 700;
   font-family: "Orbitron";
 }
 
 h1 svg {
-  color: #FF85B8 !important
+  color: #FFB070 !important
 }
 
 h2 {
