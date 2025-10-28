@@ -1,6 +1,6 @@
 <template>
     <div class="pt-80"></div>
-    <div class="p-4 bg-gray-800 rounded-lg">
+    <!-- <div class="p-4 bg-gray-800 rounded-lg"> -->
         <!-- <h3 class="text-lg font-semibold mb-2">Disclaimer</h3>
         <p class="text-sm text-gray-200">
             Your money, your decision, and your risk. PoolKeeper provides data, analytics, and automation tools for
@@ -13,5 +13,5 @@
             and is not a registered financial adviser in any jurisdiction. Use of the platform and its tools implies
             full acceptance of these terms.
         </p> -->
-    </div>
+    <!-- </div> -->
 </template>
