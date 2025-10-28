@@ -14,7 +14,7 @@
 
 /* make image small */
 svg {
-  height: 30px;
+  height: 70px;
   vertical-align: middle;
   margin-right: 10px;
   color: var(--color-accent);

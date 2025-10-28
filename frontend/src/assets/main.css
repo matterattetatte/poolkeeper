@@ -31,6 +31,7 @@
 body {
   background: var(--color-bg);
   color: var(--color-text);
+  font-family: "Space Mono";
 }
 
 #app {
@@ -49,9 +50,17 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Restore default heading sizes Tailwind removes */
 h1 {
-  font-size: 2em;      /* Default browser size */
+/* background: -webkit-linear-gradient(135deg, #7456C8, #9A81DF); For older WebKit browsers */
+  background: linear-gradient(135deg, #7456C8, #FF85B8); /* Standard syntax */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   font-weight: bold;
   margin: 0.67em 0;
+  font-family: "Orbitron";
+}
+
+h1 svg {
+  color: #FF85B8 !important
 }
 
 h2 {
@@ -89,6 +98,7 @@ button {
 }
 
 .svg-icon {
+  margin-left: 100px;
   width: 40px;
   height: 40px;
   filter: brightness(0) saturate(100%) invert(63%) sepia(46%) saturate(741%) hue-rotate(224deg) brightness(101%) contrast(102%);

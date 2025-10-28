@@ -3,6 +3,24 @@
     <h1>About PoolKeeper</h1>
   </header>
 
+     <div class="flex py-20">
+        <div class="w-1/3 p-4">
+          <img src="https://icon.pictographic.io/image/4CZNMBXMC7Yn1auXCama.svg?stroke=45" class="svg-icon" />
+          <h3 class="text-xl font-semibold mb-2">Comprehensive Analytics</h3>
+          <p>Track liquidity pool performance with historical data and comprehensive metrics across major DEXs</p>
+        </div>
+        <div class="w-1/3 p-4">
+          <img src="https://icon.pictographic.io/image/16Mfc8EXhyuEcsJI5mmX.svg?stroke=45" class="svg-icon" />
+          <h3 class="text-xl font-semibold mb-2 mt-4">Risk Simulation</h3>
+          <p>Test strategies before committing capital. Simulate impermanent loss and returns under various market conditions.</p>
+        </div>
+        <div class="w-1/3 p-4">
+          <img src="https://icon.pictographic.io/image/0RAk6owQ6taoPYWHa8OB.svg?stroke=45" class="svg-icon" />
+          <h3 class="text-xl font-semibold mb-2 mt-4">Portfolio Management</h3>
+          <p>Monitor all your positions in one place. Get alerts on significant changes and optimization opportunities.</p>
+        </div>
+     </div>
+
   <section id="intro">
     <h2>Stay in Range. Stay Profitable.</h2>
     <p>
