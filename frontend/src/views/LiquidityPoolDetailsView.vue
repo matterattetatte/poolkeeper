@@ -70,7 +70,7 @@
         Compare with other pools...
       </button>
     </ComingSoon>
-      <AIBotVerdict v-if="fullLPData" :fullLPData="fullLPData" />
+      <AIBotVerdict v-if="fullLPData" :fullLPData="fullLPData" :poolName="route.query.name" />
   </main>
 </template>
 
@@ -78,7 +78,7 @@
 import { ref, computed, onMounted, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import * as d3 from 'd3';
-import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DailyData, DayAPRData, groupBy, indexBy } from '@/utils/lpUtils';
+import { calculateDayAPR, calculateAverageAPR, processTicks, createPriceToTickMap, generateDailyData, DayAPRData, indexBy } from '@/utils/lpUtils';
 import supabase from '@/lib/supabase';
 import ComingSoon from '@/components/ComingSoon.vue';
 import AIBotVerdict from '@/components/AIBotVerdict.vue';

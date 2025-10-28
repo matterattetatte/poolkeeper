@@ -13,10 +13,11 @@ import { computed, defineProps, ref } from 'vue';
 import { InferenceClient } from '@huggingface/inference';
 import { marked } from 'marked';
 
-const hf = new InferenceClient('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'); // temp, only for mvp
+const hf = new InferenceClient('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'); // temp, only for mvp, not safe for product launch!!
 
 const props = defineProps<{
     fullLPData: any;
+    poolName: any;
 }>();
 
 const isLoading = ref(false);
@@ -36,7 +37,7 @@ const onClick = async () => {
         Also, explain why it's a good lp.
         If I do not provide data, just make something up, ok?
         ` },
-        { role: "user", content: "Here is the LP data: ... (for now, just make up any data..)" },
+        { role: "user", content: "Here is the LP data: ... (for now, just make up any data..). Keep it short and with a few sentences. Pool name is" },
         { role: "user", content: "Explain, why or why not is this a good liquidity pool?" }
     ],
     });

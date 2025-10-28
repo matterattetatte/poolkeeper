@@ -25,7 +25,7 @@
     <!-- Tab content -->
     <div class="tab-content">
       <div v-if="activeTab === 0" id="tab-panel-0" role="tabpanel">
-        <h2 class="text-2xl font-semibold mb-4">Beginner: Understanding Liquidity Pools</h2>
+        <h2 class="text-2xl font-semibold mb-4">Understanding Liquidity Pools</h2>
 
         <h3 class="text-xl font-medium mb-2">Introduction to Liquidity Provision</h3>
         <p class="mb-4">
@@ -130,7 +130,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 
-const tabList = ['Beginner', 'Intermediate', 'Advanced']
+const tabList = ['Intro']
 const activeTab = ref(0)
 </script>
 
