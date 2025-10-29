@@ -37,7 +37,7 @@ const onClick = async () => {
         Also, explain why it's a good lp.
         If I do not provide data, just make something up, ok?
         ` },
-        { role: "user", content: "Here is the LP data: ... (for now, just make up any data..). Keep it short and with a few sentences. Pool name is" },
+        { role: "user", content: "Here is the LP data: ... (for now, just make up any data..). Keep it short and with a few sentences. Pool name is WSOL-USDC (Raydium) and has Total TVL: $28,212,990 and 21.66% backtracked APR" },
         { role: "user", content: "Explain, why or why not is this a good liquidity pool?" }
     ],
     });

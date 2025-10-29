@@ -17,7 +17,7 @@
               <h2>
                 {{ (aprData?.dailyAPR?.dailyAPR * 100).toFixed(2) || 'N/A' }}%
               </h2>
-              <p>APR based on selected date's LP distribution, price, and volume: </p>
+              <p>APR based on selected date's LP distribution, price, and volume </p>
               <hr style="color:var(--color-primary); margin-top:16px" />
               <h2>
                 {{ (aprData?.averageAPR?.averageAPR * 100).toFixed(2) || 'N/A' }}%

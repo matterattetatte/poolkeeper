@@ -10,7 +10,7 @@ import Logo from '@/components/Logo.vue';
       <Logo class="inline-block pb-2 ml-4" />
     </h1>
     <p class="text-center mb-8 text-2xl">
-      Your command center for Solana liquidity
+      control panel for Solana yield
     </p>
   </main>
 </template>
