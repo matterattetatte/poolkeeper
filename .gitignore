@@ -4,3 +4,10 @@ frontend/tsconfig.tsbuildinfo
 frontend/vite.config.js
 .firebase/hosting.*
 frontend/firebase-debug.log
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
