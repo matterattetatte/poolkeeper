@@ -18,7 +18,7 @@ const openReadmeInEditor = () => fetch("/__open-in-editor?file=README.md");
     <template #heading>Liquidity Pools</template>
 
     Manage your liquidity pools. Add new pools, view existing ones, and track their performance over time. 
-      <RouterLink to="/lps">
+      <RouterLink to="/pools">
       Go to Liquidity Pools
       </RouterLink>
 

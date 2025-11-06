@@ -11,7 +11,7 @@ import Footer from '@/components/Footer.vue';
    <nav class="flex items-center justify-start">
     <Logo />
     <RouterLink to="/" exact>Home</RouterLink>
-    <RouterLink to="/lps">Liquidity Pools</RouterLink>
+    <RouterLink to="/pools">Liquidity Pools</RouterLink>
     <RouterLink to="/borrow">Borrowing (coming soon)</RouterLink>
     <RouterLink to="/learn-more">Learn More</RouterLink>
     <RouterLink to="/about">About</RouterLink>
