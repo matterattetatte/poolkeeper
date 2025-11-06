@@ -31,7 +31,7 @@ const router = createRouter({
 			component: () => import('../views/LiquidityPoolsView.vue'),
 		},
 		{
-			path: '/pool/:id',
+			path: '/pools/:id',
 			name: 'pool-details',
 			component: () => import('../views/LiquidityPoolDetailsView.vue'),
 		},
