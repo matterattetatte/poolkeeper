@@ -6,6 +6,13 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/.well-known/farcaster.json",
+        "destination": "https://api.farcaster.xyz/miniapps/hosted-manifest/019a59bd-5ac0-e122-bdbb-7356b82117c7",
+        "type": 307
+      }
+    ],
     "rewrites": [
       {
         "source": "**",

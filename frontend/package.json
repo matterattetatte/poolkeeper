@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@coral-xyz/anchor": "^0.32.1",
+    "@farcaster/miniapp-sdk": "^0.2.1",
     "@huggingface/inference": "^4.11.1",
     "@jup-ag/api": "^6.0.44",
     "@solana/wallet-adapter-wallets": "^0.19.37",

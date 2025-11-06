@@ -1,0 +1,28 @@
+{
+  "miniapp": {
+    "version": "1",
+    "name": "PoolKeeper Mini App",
+    "tagline": "Track liquidity pools",
+    "homeUrl": "https://poolkeeper-ad847.web.app/",
+    "iconUrl": "https://poolkeeper-ad847.web.app/favicon.ico",
+    "heroImageUrl": "https://poolkeeper-ad847.web.app/favicon.ico",
+    "splashImageUrl": "https://poolkeeper-ad847.web.app/favicon.ico",
+    "splashBackgroundColor": "#0b0f1a",
+    "imageUrl": "https://poolkeeper-ad847.web.app/favicon.ico",
+    "button": {
+        "title": "Pool Keeper",
+      "action": {
+        "type": "launch_miniapp",
+        "url": "https://poolkeeper-ad847.web.app/",
+        "name":"Pool Keeper",
+        "splashImageUrl": "https://poolkeeper-ad847.web.app/favicon.ico",
+        "splashBackgroundColor":"#f5f0ec"
+      }
+    }
+  },
+  "accountAssociation": {
+    "header": "eyJmaWQiOjEzMjcxNDQsInR5cGUiOiJjdXN0b2R5Iiwia2V5IjoiMHgwQkM3NkMwN0NlMGIyQUJjRjVkM2U1YmNCNDM1M2VjQzRDNTlFNjFEIn0",
+    "payload": "eyJkb21haW4iOiJwb29sa2VlcGVyLWFkODQ3LndlYi5hcHAifQ",
+    "signature": "Vs3a95rgbwRbjvxxzr2tSUR9sr6tH0VaU18XziLZQx0ZHixzWdTpJ/1EzISBsTnYuE4QkAPEl5giMH5rHV9fHBs="
+  }
+}
