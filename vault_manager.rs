@@ -16,7 +16,7 @@
 use anchor_lang::prelude::*;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 
-declare_id!("YourProgramIdHere111111111111111111111111111111");
+declare_id!("7Y8CNTcNiU4s6Aih26rFcFWLrGTka4Kqzd5MajUKhVFx");
 
 #[program]
 pub mod vault_manager {

@@ -4,6 +4,10 @@ members = [
 ]
 resolver = "2"
 
+[workspace.dependencies]
+borsh = "1.5"
+bytemuck = { version = "1.24.0", features = ["derive"] }
+
 [profile.release]
 overflow-checks = true
 lto = "fat"
