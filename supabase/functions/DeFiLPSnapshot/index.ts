@@ -64,6 +64,27 @@ const pools = [
         baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // usdc
     },
     {
+        address: '2AXXcN6oN9bBT5owwmTH53C7QHUXvhLeu718Kqt8rvY2',
+        name: 'WSOL/RAY (Raydium)',
+        network: 'solana',
+        exchange: 'raydium',
+        baseTokenAddress: '4k3Dyjzvzp8eMZWUXbBCjEvwSkkk59S5iCNLY3QrkX6R' // Ray
+    },
+    {
+        address: 'AS5MV3ear4NZPMWXbCsEz3AdbCaXEnq4ChdaWsvLgkcM',
+        name: 'USDS/USDC (Raydium)',
+        network: 'solana',
+        exchange: 'raydium',
+        baseTokenAddress: 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v' // usdc
+    },
+    {
+        address: 'HktfL7iwGKT5QHjywQkcDnZXScoh811k7akrMZJkCcEF',
+        name: 'whETH/WSOL (Orca)',
+        network: 'solana',
+        exchange: 'orca',
+        baseTokenAddress: 'So11111111111111111111111111111111111111112' // wsol
+    },
+    {
         address: 'Czfq3xZZDmsdGdUyrNLtRhGc47cXcZtLG4crryfu44zE',
         name: 'WSOL/USDC (Orca)',
         network: 'solana',
