@@ -66,7 +66,7 @@
       </div>
     </div>
     <ComingSoon>
-      <button>
+      <button @click="addComparisonPool" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
         Compare with other pools...
       </button>
     </ComingSoon>
@@ -505,6 +505,10 @@ async function loadData() {
     loading.value = false;
   }
 }
+
+const addComparisonPool = () => {
+  // Placeholder for future functionality
+};
 
 // Watch for changes in computed properties to re-render chart
 watch([groupedData, activePrice, lowerBoundPrice, upperBoundPrice], () => {
