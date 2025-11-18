@@ -267,6 +267,7 @@ async function fetchLiquidityData(poolId: string) {
     .from('DeFiPools_snapshots')
     .select('*')
     .eq('poolAddress', poolId)
+    .limit(30)
     // .order('date', { ascending: false });
 
     if (error) {
