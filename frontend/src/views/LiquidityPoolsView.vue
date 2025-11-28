@@ -20,10 +20,10 @@ const pools = [
     },
     {
         address: '0xd0b53D9277642d899DF5C87A3966A349A798F224',
-        name: 'WETH / cbBTC',
+        name: 'WETH / USDC',
         network: 'base',
         exchange: 'uniswap',
-        baseTokenAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' //cbBTC
+        baseTokenAddress: '0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' // usdc
     },
     {
         address: '3ucNos4NbumPLZNWztqGHNFFgkHeRMBQAVemeeomsUxv',
