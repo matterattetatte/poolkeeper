@@ -21,7 +21,7 @@ onMounted(() => {
       <Logo class="inline-block pb-2 ml-4" />
     </h1>
     <p class="text-center mb-8 text-2xl">
-      control panel for Solana yield
+      control panel for LP yield
     </p>
   </main>
 </template>
